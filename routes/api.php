@@ -22,7 +22,8 @@ Route::get('/test', function(Request $request) {
 	echo 'good to see you';
 });
 
-Route::get('/first-test', 'TestsController@firstTest');
-
 Route::get('/cron-1day', 'CronsController@cron_1day');
 Route::get('/cron-1min', 'CronsController@cron_1min');
+
+Route::get('/currencies', 'CurrenciesController@index');
+Route::get('/currencies/{currency}', 'CurrenciesController@currency');

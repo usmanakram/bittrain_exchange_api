@@ -28,8 +28,8 @@ class CreateHistoricalPricesTable extends Migration
             $table->double('asset_volume', 25, 8);
             $table->double('base_volume', 25, 8);
             $table->bigInteger('trades');
-            $table->double('asset_buy_value', 25, 8);
-            $table->double('token_buy_value', 25, 8);
+            $table->double('asset_buy_volume', 25, 8);
+            $table->double('taker_buy_volume', 25, 8);
             $table->double('ignored', 25, 8);
             $table->timestamps();
         });
