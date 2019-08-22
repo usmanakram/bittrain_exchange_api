@@ -139,5 +139,9 @@ class CronsController extends Controller
 		echo '<pre>';
 		print_r($response);
 		echo '</pre>';
+
+		event(new \App\Events\NewMessage("NewMessage from home channel: Prices have been updated"));
+		// event(new \App\Events\LiveRates("LiveRates from live channel: Prices have been updated"));
+		event(new \App\Events\LiveRates(\App\Latest_price::orderBy('id')->get()));
 	}
 }
