@@ -143,5 +143,15 @@ class CronsController extends Controller
 		event(new \App\Events\NewMessage("NewMessage from home channel: Prices have been updated"));
 		// event(new \App\Events\LiveRates("LiveRates from live channel: Prices have been updated"));
 		event(new \App\Events\LiveRates(\App\Latest_price::orderBy('id')->get()));
+
+		/*ini_set('max_execution_time', 60);
+		$this->api->miniTicker(function($api, $ticker) use ($symbols) {
+			foreach ($symbols as $symbol) {
+				if ( $index = array_search($symbol, array_column($ticker, 'symbol')) ) {
+					Latest_price::updateOrCreate(['pair' => $symbol], ['last_price' => $ticker[$index]['open']]);
+				}
+			}
+			event(new \App\Events\LiveRates(\App\Latest_price::orderBy('id')->get()));
+		});*/
 	}
 }
