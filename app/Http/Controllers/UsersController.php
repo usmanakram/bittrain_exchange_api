@@ -91,7 +91,8 @@ class UsersController extends Controller
     			'HTTP_AUTHENTICATION' => $header
     		],*/
     		'headers' => [
-    			'HTTP_AUTHENTICATION' => $header
+    			// 'HTTP_AUTHENTICATION' => $header
+    			'AUTHENTICATION' => $header
     		],
     		'body' => $credentials
     	]);
