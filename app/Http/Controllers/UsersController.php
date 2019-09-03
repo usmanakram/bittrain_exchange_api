@@ -57,11 +57,11 @@ class UsersController extends Controller
 
     public function login()
     {
-    	/*$credentials = [
+    	$credentials = [
     		'bit_uname' => 'tabassumali21',
     		'bit_password' => '!Scitilop!1'
-    	];*/
-    	$credentials = 'bit_uname=tabassumali21&bit_password=!Scitilop!1';
+    	];
+    	// $credentials = 'bit_uname=tabassumali21&bit_password=!Scitilop!1';
 
 
     	// $endpoint = 'http://18.220.217.218/bittrain_exchange_api/public/api/currencies';
@@ -95,7 +95,8 @@ class UsersController extends Controller
     			// 'HTTP_AUTHENTICATION' => $header
     			'AUTHENTICATION' => $header
     		],
-    		'body' => $credentials
+    		// 'body' => $credentials,
+    		'form_params' => $credentials
     	]);
 
     	// echo $response->getStatusCode(); # 200
