@@ -27,3 +27,12 @@ Route::get('/cron-1min', 'CronsController@cron_1min');
 
 Route::get('/currencies', 'CurrenciesController@index');
 Route::get('/currencies/{currency}', 'CurrenciesController@currency');
+
+
+
+
+Route::get('/test-get-apiendpoint', 'UsersController@testGetApiEndpoint');
+Route::post('/test-post-apiendpoint', 'UsersController@testPostApiEndpoint');
+
+Route::get('/login', 'UsersController@login');
+Route::get('/test-curl', 'UsersController@testCurl');
