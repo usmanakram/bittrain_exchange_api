@@ -69,7 +69,7 @@ class UsersController extends Controller
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-get-apiendpoint';
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-post-apiendpoint';
     	$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
-    	$endpoint = 'http://18.220.217.218/test.php';
+    	// $endpoint = 'http://18.220.217.218/test.php';
 
     	$header = $this->getLoginRequestHeader();
 
