@@ -57,18 +57,18 @@ class UsersController extends Controller
 
     public function login()
     {
-    	/*$credentials = [
+    	$credentials = [
     		'bit_uname' => 'tabassumali21',
     		'bit_password' => '!Scitilop!1'
-    	];*/
-    	$credentials = 'bit_uname=tabassumali21&bit_password=!Scitilop!1';
+    	];
+    	// $credentials = 'bit_uname=tabassumali21&bit_password=!Scitilop!1';
 
 
     	// $endpoint = 'http://18.220.217.218/bittrain_exchange_api/public/api/currencies';
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/currencies';
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-get-apiendpoint';
-    	$endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-post-apiendpoint';
-    	// $endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
+    	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-post-apiendpoint';
+    	$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
 
     	$header = $this->getLoginRequestHeader();
 
@@ -133,9 +133,9 @@ class UsersController extends Controller
 
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-get-apiendpoint';
     	$endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-post-apiendpoint';
-    	// $endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
+    	$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
     	// $endpoint = 'http://18.220.217.218/test.php';
-    	$endpoint = 'http://18.220.217.218/bittrain_exchange_api/public/api/test-post-apiendpoint';
+    	// $endpoint = 'http://18.220.217.218/bittrain_exchange_api/public/api/test-post-apiendpoint';
 
     	$header = $this->getLoginRequestHeader();
     	// echo $header;
@@ -161,7 +161,7 @@ class UsersController extends Controller
 		    CURLOPT_CUSTOMREQUEST => "POST",
 		    CURLOPT_POSTFIELDS => json_encode($credentials),
 		    CURLOPT_HTTPHEADER => array(
-		        "HTTP_AUTHENTICATION: " . $header
+		        "AUTHENTICATION: " . $header
 		    ),
 		    CURLOPT_HEADER => false,
 		    CURLOPT_HEADER => 0
