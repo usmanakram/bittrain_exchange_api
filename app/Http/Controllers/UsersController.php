@@ -9,11 +9,7 @@ use App\Word;
 class UsersController extends Controller
 {
 	public function testGetApiEndpoint()
-	{
-		$response = \App\Latest_price::orderBy('id')
-					->get();
-					// ->toArray();
-		
+	{		
 		// return response()->json($response);
 		// return response()->api($response);
 
@@ -24,16 +20,19 @@ class UsersController extends Controller
 
 	public function testPostApiEndpoint()
 	{
-		$response = \App\Latest_price::orderBy('id')
-					->get();
-					// ->toArray();
-		
 		// return response()->json($response);
 		// return response()->api($response);
 		
 		$requestHeader = getallheaders();
 		$requestBody = file_get_contents('php://input');
-		return response()->api($requestHeader);
+		echo '<pre>';
+		print_r($requestHeader);
+		echo '</pre>';
+		
+		echo '<pre>';
+		print_r($requestBody);
+		echo '</pre>';
+		// return response()->api($requestHeader);
 	}
 
 	private function convertTimeToString($time)
@@ -135,7 +134,8 @@ class UsersController extends Controller
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-get-apiendpoint';
     	$endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-post-apiendpoint';
     	// $endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
-    	$endpoint = 'http://18.220.217.218/test.php';
+    	// $endpoint = 'http://18.220.217.218/test.php';
+    	$endpoint = 'http://18.220.217.218/bittrain_exchange_api/public/api/test-post-apiendpoint';
 
     	$header = $this->getLoginRequestHeader();
     	// echo $header;
@@ -172,13 +172,13 @@ class UsersController extends Controller
 
 		curl_close($curl);
 
-		if ($err) {
+		/*if ($err) {
 		    echo "cURL Error #:" . $err;
 		} else {
 		    print_r(json_decode($response));
 		}
 		echo '<br />';
-		var_dump($response);
+		var_dump($response);*/
 
     }
 }
