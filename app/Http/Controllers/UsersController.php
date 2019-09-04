@@ -193,7 +193,7 @@ class UsersController extends Controller
 
 		// $response = 'good to see you';
 
-    	return $response;
-    	// return response()->api($response);
+    	// return $response;
+    	return response()->api($response);
     }
 }
