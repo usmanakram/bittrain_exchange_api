@@ -169,6 +169,13 @@ class UsersController extends Controller
 
     public function reactLogin(Request $request)
     {
+    	$validatedData = $request->validate([
+			'bit_uname' => 'required',
+			'bit_password' => 'required'
+    	]);
+
+    	$response = $validatedData;
+
     	/*$requestHeader = getallheaders();
 		$requestBody = file_get_contents('php://input');
 		echo '<pre>';
@@ -184,7 +191,7 @@ class UsersController extends Controller
 		echo '</pre>';*/
 		// return response()->api($requestHeader);
 
-		$response = 'good to see you';
+		// $response = 'good to see you';
 
     	return $response;
     	// return response()->api($response);
