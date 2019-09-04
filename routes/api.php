@@ -38,4 +38,4 @@ Route::get('/login', 'UsersController@login');
 Route::get('/test-curl', 'UsersController@testCurl');
 
 Route::post('/react-login', 'UsersController@reactLogin');
-// Route::options('/react-login', 'UsersController@reactLogin');
+Route::options('/react-login', 'UsersController@reactLogin');
