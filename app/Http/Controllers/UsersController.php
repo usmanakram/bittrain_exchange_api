@@ -97,7 +97,7 @@ class UsersController extends Controller
     	]);
 
 		echo $response->getBody();
-		echo '<br /><br />';
+		echo '<hr /><br />';
 		var_dump($response->getBody());
 
     	/*
