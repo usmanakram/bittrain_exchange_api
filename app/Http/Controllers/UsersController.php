@@ -29,6 +29,11 @@ class UsersController extends Controller
 		print_r($requestHeader);
 		echo '</pre>';
 		
+		echo 'POST data';
+		echo '<pre>';
+		print_r($_POST);
+		echo '</pre>';
+		
 		echo '<pre>';
 		print_r($requestBody);
 		echo '</pre>';
@@ -81,16 +86,8 @@ class UsersController extends Controller
     		]
     	]);*/
     	// $response = $client->request('get', $endpoint);
-    	/*$response = $client->request('get', $endpoint, [
-    		'headers' => [
-    			'HTTP_AUTHENTICATION' => $header
-    		]
-    	]);*/
 
     	$response = $client->post($endpoint, [
-    		/*'headers' => [
-    			'HTTP_AUTHENTICATION' => $header
-    		],*/
     		'headers' => [
     			// 'HTTP_AUTHENTICATION' => $header
     			'AUTHENTICATION' => $header
@@ -99,21 +96,9 @@ class UsersController extends Controller
     		'form_params' => $credentials
     	]);
 
-    	// echo $response->getStatusCode(); # 200
-		// echo '<br />';
-		// echo $response->getHeaderLine('content-type'); # 'application/json; charset=utf8'
-		// echo '<br />';
-		// echo $response->getBody(); # '{"id": 1420053, "name": "guzzle", ...}'
-
 		echo $response->getBody();
 		echo '<br /><br />';
 		var_dump($response->getBody());
-
-    	echo '<pre>';
-    	print_r($response->getBody());
-    	echo '</pre>';
-
-    	dd($response);
 
     	/*
     	$client = new \GuzzleHttp\Client();
@@ -121,9 +106,7 @@ class UsersController extends Controller
 		$response = $client->get('https://api.github.com/repos/guzzle/guzzle');
 
 		echo $response->getStatusCode(); # 200
-		echo '<br />';
 		echo $response->getHeaderLine('content-type'); # 'application/json; charset=utf8'
-		echo '<br />';
 		echo $response->getBody(); # '{"id": 1420053, "name": "guzzle", ...}'
 		*/
     }
@@ -182,6 +165,28 @@ class UsersController extends Controller
 		}
 		echo '<br />';
 		var_dump($response);*/
+    }
 
+    public function reactLogin(Request $request)
+    {
+    	/*$requestHeader = getallheaders();
+		$requestBody = file_get_contents('php://input');
+		echo '<pre>';
+		print_r($requestHeader);
+		echo '</pre>';
+		
+		echo '<pre>';
+		print_r($_POST);
+		echo '</pre>';
+		
+		echo '<pre>';
+		print_r($requestBody);
+		echo '</pre>';*/
+		// return response()->api($requestHeader);
+
+		$response = 'good to see you';
+
+    	return $response;
+    	// return response()->api($response);
     }
 }
