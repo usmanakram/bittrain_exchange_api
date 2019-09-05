@@ -204,7 +204,8 @@ class UsersController extends Controller
 
 		// $response = $validatedData;
 		$response = $this->authFromBittrain($validatedData);
-		// echo $response;
+		echo $response;
+		$response = ['key' => 'value'];
 
 
 
