@@ -167,7 +167,7 @@ class UsersController extends Controller
 		var_dump($response);*/
     }
 
-    private function authFromBittrain($credentials)
+    public function authFromBittrain($credentials = ['bit_uname' => 'tabassumali21', 'bit_password' => '!Scitilop!1'])
     {
 		/*$credentials = [
 			'bit_uname' => 'tabassumali21',
