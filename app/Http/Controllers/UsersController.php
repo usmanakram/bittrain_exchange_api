@@ -219,6 +219,13 @@ class UsersController extends Controller
 		var_dump($response);
 		echo '<br /><br />';
 
+		$user = $response['novus_user'][0];
+		echo '<pre>';
+		print_r($user);
+		echo '</pre>';
+		var_dump($user);
+		echo '<br /><br />';
+
 		$response = ['key' => 'value'];
 
 
