@@ -203,6 +203,12 @@ class UsersController extends Controller
 		echo '</pre>';
 		var_dump($response);
 
+		echo '$_POST data<br />';
+		echo '<pre>';
+		print_r($_POST);
+		echo '</pre>';
+
+
 
 
     	// return $response;
