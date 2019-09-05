@@ -167,12 +167,12 @@ class UsersController extends Controller
 		var_dump($response);*/
     }
 
-    private function authFromBittrain()
+    private function authFromBittrain($credentials)
     {
-		$credentials = [
+		/*$credentials = [
 			'bit_uname' => 'tabassumali21',
 			'bit_password' => '!Scitilop!1'
-		];
+		];*/
 
 		$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
 
@@ -196,22 +196,12 @@ class UsersController extends Controller
 			'bit_password' => 'required'
 		]);
 
-		$response = $validatedData;
-
-		echo '<pre>';
-		print_r($response);
-		echo '</pre>';
-		var_dump($response);
-
-		echo '$_POST data<br />';
-		echo '<pre>';
-		print_r($_POST);
-		echo '</pre>';
+		// $response = $validatedData;
+		$response = $this->authFromBittrain($validatedData);
 
 
 
-
-    	// return $response;
-    	return response()->api($response);
+    	return $response;
+    	// return response()->api($response);
     }
 }
