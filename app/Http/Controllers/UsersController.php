@@ -186,7 +186,7 @@ class UsersController extends Controller
 			'form_params' => $credentials
 		]);
 
-		return $response;
+		return $response->getBody();
     }
 
     public function reactLogin(Request $request)
@@ -203,6 +203,7 @@ class UsersController extends Controller
 
 		// $response = $validatedData;
 		$response = $this->authFromBittrain($validatedData);
+		echo $response;
 
 
 
