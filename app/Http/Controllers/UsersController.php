@@ -167,7 +167,7 @@ class UsersController extends Controller
 		var_dump($response);*/
     }
 
-    public function authFromBittrain($credentials)
+    private function authFromBittrain($credentials)
     {
 		/*$credentials = [
 			'bit_uname' => 'tabassumali21',
@@ -196,41 +196,12 @@ class UsersController extends Controller
 			'bit_password' => 'required'
 		]);
 
-		/*$validatedData = [
-			'bit_uname' => 'tabassumali21',
-			'bit_password' => '!Scitilop!1'
-		];*/
-		// var_dump($validatedData);
-
-		// $response = $validatedData;
 		$response = $this->authFromBittrain($validatedData);
-		/*echo '<br /><br />';
-		echo $response;
-		echo '<pre>';
-		print_r($response);
-		echo '</pre>';
-		var_dump($response);
-		echo '<br /><br />';*/
 
 		$response = json_decode($response, true);
-		/*echo '<pre>';
-		print_r($response);
-		echo '</pre>';
-		var_dump($response);
-		echo '<br /><br />';*/
 
 		$user = $response['novus_user'][0];
-		/*echo '<pre>';
-		print_r($user);
-		echo '</pre>';
-		var_dump($user);
-		echo '<br /><br />';
 
-		$response = ['key' => 'value'];*/
-
-
-
-    	// return $response;
-    	return response()->api($user);
-    }
+		return response()->api($user);
+	}
 }
