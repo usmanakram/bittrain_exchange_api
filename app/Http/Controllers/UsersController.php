@@ -211,6 +211,14 @@ class UsersController extends Controller
 		echo '</pre>';
 		var_dump($response);
 		echo '<br /><br />';
+
+		$response = json_decode($response);
+		echo '<pre>';
+		print_r($response);
+		echo '</pre>';
+		var_dump($response);
+		echo '<br /><br />';
+		
 		$response = ['key' => 'value'];
 
 
