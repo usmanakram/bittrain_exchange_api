@@ -173,7 +173,6 @@ class UsersController extends Controller
 			'bit_uname' => 'tabassumali21',
 			'bit_password' => '!Scitilop!1'
 		];*/
-		return $credentials;
 
 		$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
 
