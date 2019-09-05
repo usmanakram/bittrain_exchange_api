@@ -200,37 +200,37 @@ class UsersController extends Controller
 			'bit_uname' => 'tabassumali21',
 			'bit_password' => '!Scitilop!1'
 		];*/
-		var_dump($validatedData);
+		// var_dump($validatedData);
 
 		// $response = $validatedData;
 		$response = $this->authFromBittrain($validatedData);
-		echo '<br /><br />';
+		/*echo '<br /><br />';
 		echo $response;
 		echo '<pre>';
 		print_r($response);
 		echo '</pre>';
 		var_dump($response);
-		echo '<br /><br />';
+		echo '<br /><br />';*/
 
 		$response = json_decode($response, true);
-		echo '<pre>';
+		/*echo '<pre>';
 		print_r($response);
 		echo '</pre>';
 		var_dump($response);
-		echo '<br /><br />';
+		echo '<br /><br />';*/
 
 		$user = $response['novus_user'][0];
-		echo '<pre>';
+		/*echo '<pre>';
 		print_r($user);
 		echo '</pre>';
 		var_dump($user);
 		echo '<br /><br />';
 
-		$response = ['key' => 'value'];
+		$response = ['key' => 'value'];*/
 
 
 
     	// return $response;
-    	return response()->api($response);
+    	return response()->api($user);
     }
 }
