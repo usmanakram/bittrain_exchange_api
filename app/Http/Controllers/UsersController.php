@@ -186,7 +186,7 @@ class UsersController extends Controller
 			'form_params' => $credentials
 		]);
 
-		return json_decode($response->getBody(), true);
+		return $response->getBody();
     }
 
     public function reactLogin(Request $request)
