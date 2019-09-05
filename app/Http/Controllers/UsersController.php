@@ -8,17 +8,65 @@ use App\Word;
 
 class UsersController extends Controller
 {
-	public function testGetApiEndpoint()
-	{		
-		// return response()->json($response);
-		// return response()->api($response);
+	private function convertTimeToString($time)
+	{
+		$alphabets = 'abcdefghij';
+		$response = '';
 
-		$requestHeader = getallheaders();
-		$requestBody = file_get_contents('php://input');
-		return response()->api($requestBody);
+		for ($i=0; $i < strlen($time); $i++) { 
+			$response .= $alphabets[$time[$i]];
+		}
+
+		return $response;
 	}
 
-	public function testPostApiEndpoint()
+	private function getLoginRequestHeader()
+	{
+		$header = $this->convertTimeToString( gmdate('YmdHis') );
+		$header .= Word::inRandomOrder()->first()->msg;
+		$header .= $this->convertTimeToString( gmdate('YmdHis', time()+(2*60)) );
+		return $header;
+	}
+
+	private function authFromBittrain($credentials)
+	{
+		/*$credentials = [
+			'bit_uname' => 'tabassumali21',
+			'bit_password' => '!Scitilop!1'
+		];*/
+
+		$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
+
+		$header = $this->getLoginRequestHeader();
+
+		$client = new \GuzzleHttp\Client();
+
+		$response = $client->post($endpoint, [
+			'headers' => ['AUTHENTICATION' => $header],
+			// 'body' => $credentials,
+			'form_params' => $credentials
+		]);
+
+		return (string) $response->getBody();
+	}
+
+	public function reactLogin(Request $request)
+	{
+		$validatedData = $request->validate([
+			'bit_uname' => 'required',
+			'bit_password' => 'required'
+		]);
+
+		$response = $this->authFromBittrain($validatedData);
+
+		$response = json_decode($response, true);
+
+		$user = $response['novus_user'][0];
+
+		return response()->api($user);
+	}
+
+	public function testApiEndpoint()
 	{
 		// return response()->json($response);
 		// return response()->api($response);
@@ -38,26 +86,6 @@ class UsersController extends Controller
 		print_r($requestBody);
 		echo '</pre>';
 		// return response()->api($requestHeader);
-	}
-
-	private function convertTimeToString($time)
-	{
-		$alphabets = 'abcdefghij';
-		$response = '';
-
-		for ($i=0; $i < strlen($time); $i++) { 
-			$response .= $alphabets[$time[$i]];
-		}
-
-		return $response;
-	}
-
-	private function getLoginRequestHeader()
-	{
-		$header = $this->convertTimeToString( gmdate('YmdHis') );
-    	$header .= Word::inRandomOrder()->first()->msg;
-    	$header .= $this->convertTimeToString( gmdate('YmdHis', time()+(2*60)) );
-    	return $header;
 	}
 
     public function login()
@@ -116,7 +144,6 @@ class UsersController extends Controller
     	// curl -X POST -H "HTTP_AUTHENTICATION: cabjajacbecibg4phf0st3m1c5cabjajacbedabg" --data "bit_uname=tabassumali21&bit_password='!Scitilop!1'" https://bittrain.org/API/Welcome/check_web_login
     	
 
-
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-get-apiendpoint';
     	$endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-post-apiendpoint';
     	$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
@@ -166,42 +193,4 @@ class UsersController extends Controller
 		echo '<br />';
 		var_dump($response);*/
     }
-
-    private function authFromBittrain($credentials)
-    {
-		/*$credentials = [
-			'bit_uname' => 'tabassumali21',
-			'bit_password' => '!Scitilop!1'
-		];*/
-
-		$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
-
-		$header = $this->getLoginRequestHeader();
-
-		$client = new \GuzzleHttp\Client();
-
-		$response = $client->post($endpoint, [
-			'headers' => ['AUTHENTICATION' => $header],
-			// 'body' => $credentials,
-			'form_params' => $credentials
-		]);
-
-		return (string) $response->getBody();
-    }
-
-    public function reactLogin(Request $request)
-    {
-		$validatedData = $request->validate([
-			'bit_uname' => 'required',
-			'bit_password' => 'required'
-		]);
-
-		$response = $this->authFromBittrain($validatedData);
-
-		$response = json_decode($response, true);
-
-		$user = $response['novus_user'][0];
-
-		return response()->api($user);
-	}
 }
