@@ -207,7 +207,7 @@ class UsersController extends Controller
 
 
 
-    	// return $response;
-    	return response()->api($response);
+    	return $response;
+    	// return response()->api($response);
     }
 }
