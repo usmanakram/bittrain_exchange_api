@@ -167,7 +167,7 @@ class UsersController extends Controller
 		var_dump($response);*/
     }
 
-    public function authFromBittrain($credentials = ['bit_uname' => 'tabassumali21', 'bit_password' => '!Scitilop!1'])
+    public function authFromBittrain($credentials)
     {
 		/*$credentials = [
 			'bit_uname' => 'tabassumali21',
@@ -191,10 +191,15 @@ class UsersController extends Controller
 
     public function reactLogin(Request $request)
     {
-		$validatedData = $request->validate([
+		/*$validatedData = $request->validate([
 			'bit_uname' => 'required',
 			'bit_password' => 'required'
-		]);
+		]);*/
+
+		$validatedData = [
+			'bit_uname' => 'tabassumali21',
+			'bit_password' => '!Scitilop!1'
+		];
 
 		// $response = $validatedData;
 		$response = $this->authFromBittrain($validatedData);
