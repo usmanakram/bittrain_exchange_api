@@ -206,7 +206,9 @@ class UsersController extends Controller
 		$response = $this->authFromBittrain($validatedData);
 		echo '<br /><br />';
 		echo $response;
-		echo '<br /><br />';
+		echo '<pre>';
+		print_r($response);
+		echo '</pre>';
 		var_dump($response);
 		echo '<br /><br />';
 		$response = ['key' => 'value'];
