@@ -202,12 +202,12 @@ class UsersController extends Controller
 		];*/
 
 		$response = $validatedData;
-		// $response = $this->authFromBittrain($validatedData);
+		$response = $this->authFromBittrain($validatedData);
 		// echo $response;
 
 
 
-    	return $response;
-    	// return response()->api($response);
+    	// return $response;
+    	return response()->api($response);
     }
 }
