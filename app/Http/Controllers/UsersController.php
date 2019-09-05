@@ -203,7 +203,7 @@ class UsersController extends Controller
 		var_dump($validatedData);
 
 		// $response = $validatedData;
-		$response = json_decode($this->authFromBittrain($validatedData), true);
+		$response = $this->authFromBittrain($validatedData);
 		echo '<br /><br />';
 		echo $response;
 		echo '<pre>';
