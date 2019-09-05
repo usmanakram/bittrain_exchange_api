@@ -167,33 +167,45 @@ class UsersController extends Controller
 		var_dump($response);*/
     }
 
+    private function authFromBittrain()
+    {
+		$credentials = [
+			'bit_uname' => 'tabassumali21',
+			'bit_password' => '!Scitilop!1'
+		];
+
+		$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
+
+		$header = $this->getLoginRequestHeader();
+
+		$client = new \GuzzleHttp\Client();
+
+		$response = $client->post($endpoint, [
+			'headers' => ['AUTHENTICATION' => $header],
+			// 'body' => $credentials,
+			'form_params' => $credentials
+		]);
+
+		return $response;
+    }
+
     public function reactLogin(Request $request)
     {
-    	$validatedData = $request->validate([
+		$validatedData = $request->validate([
 			'bit_uname' => 'required',
 			'bit_password' => 'required'
-    	]);
+		]);
 
-    	$response = $validatedData;
+		$response = $validatedData;
 
-    	/*$requestHeader = getallheaders();
-		$requestBody = file_get_contents('php://input');
 		echo '<pre>';
-		print_r($requestHeader);
+		print_r($response);
 		echo '</pre>';
-		
-		echo '<pre>';
-		print_r($_POST);
-		echo '</pre>';
-		
-		echo '<pre>';
-		print_r($requestBody);
-		echo '</pre>';*/
-		// return response()->api($requestHeader);
+		var_dump($response);
 
-		// $response = 'good to see you';
+
 
     	// return $response;
-    	return response()->api($response);
+    	// return response()->api($response);
     }
 }
