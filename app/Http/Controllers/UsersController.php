@@ -116,7 +116,7 @@ class UsersController extends Controller
 			]);
 		} else {
 			return response()->api([
-				'code' => $response['novus_user'][0]['code']
+				'code' => $response['novus_user'][0]['code'],
 				'message' => $response['novus_user'][0]['message']
 			]);
 		}
