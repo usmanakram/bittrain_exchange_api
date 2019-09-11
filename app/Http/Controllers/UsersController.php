@@ -43,7 +43,7 @@ class UsersController extends Controller
 		$client = new \GuzzleHttp\Client();
 
 		$response = $client->post($endpoint, [
-			// 'headers' => ['AUTHENTICATION' => $header],
+			'headers' => ['AUTHENTICATION' => $header],
 			// 'body' => $credentials,
 			'form_params' => $credentials
 		]);
