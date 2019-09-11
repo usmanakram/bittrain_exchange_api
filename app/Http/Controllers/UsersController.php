@@ -79,6 +79,22 @@ class UsersController extends Controller
 
 
 			$user = User::find($bittrain_user['user_id']);
+
+			if ( $user ) {
+
+			} else {
+				$user = new User([
+					'name' => $bittrain_user['full_name'],
+					'email' => $bittrain_user['real_email'],
+					// 'password' => bcrypt($request->password)
+				]);
+
+				$user->save();
+				
+				/*return response()->json([
+					'message' => 'Successfully created user!'
+				], 201);*/
+			}
 			return response()->api($user);
 			/*$tokenResult = $user->createToken('Personal Access Token');
         
