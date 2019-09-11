@@ -53,7 +53,7 @@ class AuthController extends Controller
         return (string) $response->getBody();
     }
 
-    public function reactLogin(Request $request)
+    public function login(Request $request)
     {
         $validatedData = $request->validate([
             'bit_uname' => 'required',
