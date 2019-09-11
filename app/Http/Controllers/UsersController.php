@@ -68,9 +68,9 @@ class UsersController extends Controller
 		$response = json_decode($response, true);
 		// app('log')->channel('slack')->debug($response);
 
-		$user = $response['novus_user'][0];
+		/*$user = $response['novus_user'][0];
 
-		// return response()->api($user);
+		return response()->api($user);*/
 
 		// START
 		if ( isset($response['novus_user'][0]['user_id']) ) {
@@ -113,6 +113,11 @@ class UsersController extends Controller
 				'expires_at' => Carbon::parse(
 					$tokenResult->token->expires_at
 				)->toDateTimeString()
+			]);
+		} else {
+			return response()->api([
+				'code' => $response['novus_user'][0]['code']
+				'message' => $response['novus_user'][0]['message']
 			]);
 		}
 		// END
