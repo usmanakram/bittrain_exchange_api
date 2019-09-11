@@ -86,7 +86,7 @@ class UsersController extends Controller
 				$user = new User([
 					'name' => $bittrain_user['full_name'],
 					'email' => $bittrain_user['real_email'],
-					// 'password' => bcrypt($request->password)
+					'password' => ''
 				]);
 
 				$user->save();
