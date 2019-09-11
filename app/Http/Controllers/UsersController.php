@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 // use Illuminate\Support\Facades\Log;
 use GuzzleHttp;
 use App\Word;
+use App\User;
 
 class UsersController extends Controller
 {
@@ -59,14 +60,42 @@ class UsersController extends Controller
 		]);
 
 		$response = $this->authFromBittrain($validatedData);
+
+		// Slack Log
 		app('log')->channel('slack')->debug("Bittrain Login Resposponse: \n" . $response);
 
 		$response = json_decode($response, true);
 
-		/*$user = $response['novus_user'][0];
+		$user = $response['novus_user'][0];
 
-		return response()->api($user);*/
-		return response()->api($response);
+		// return response()->api($user);
+
+		// START
+		if ( isset($response['novus_user'][0]['user_id']) ) {
+			$bittrain_user = $response['novus_user'][0];
+
+			app('log')->channel('slack')->debug("Bittrain User: \n" . $bittrain_user);
+
+
+			/*$user = User::find($bittrain_user[])
+			$tokenResult = $user->createToken('Personal Access Token');
+        
+			$token = $tokenResult->token;
+
+			if ($request->remember_me)
+			    $token->expires_at = Carbon::now()->addWeeks(1);
+
+			$token->save();
+
+			return response()->json([
+			    'access_token' => $tokenResult->accessToken,
+			    'token_type' => 'Bearer',
+			    'expires_at' => Carbon::parse(
+			        $tokenResult->token->expires_at
+			    )->toDateTimeString()
+			]);*/
+		}
+		// END
 	}
 
 	public function testApiEndpoint()
