@@ -65,7 +65,7 @@ class UsersController extends Controller
 		app('log')->channel('slack')->debug("Bittrain Login Resposponse: \n" . $response);
 
 		$response = json_decode($response, true);
-		app('log')->channel('slack')->debug($response);
+		// app('log')->channel('slack')->debug($response);
 
 		$user = $response['novus_user'][0];
 
@@ -78,8 +78,9 @@ class UsersController extends Controller
 			app('log')->channel('slack')->debug($bittrain_user);
 
 
-			/*$user = User::find($bittrain_user[])
-			$tokenResult = $user->createToken('Personal Access Token');
+			$user = User::find($bittrain_user['user_id']);
+			return response()->api($user);
+			/*$tokenResult = $user->createToken('Personal Access Token');
         
 			$token = $tokenResult->token;
 
