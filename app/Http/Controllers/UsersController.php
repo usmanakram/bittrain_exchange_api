@@ -59,9 +59,9 @@ class UsersController extends Controller
 		]);
 
 		$response = $this->authFromBittrain($validatedData);
+		app('log')->channel('slack')->debug('Bittrain Login Resposponse: ' . $response);
 
 		$response = json_decode($response, true);
-		app('log')->channel('slack')->debug('Hitting first log to slack');
 
 		/*$user = $response['novus_user'][0];
 
