@@ -65,6 +65,7 @@ class UsersController extends Controller
 		app('log')->channel('slack')->debug("Bittrain Login Resposponse: \n" . $response);
 
 		$response = json_decode($response, true);
+		app('log')->channel('slack')->debug("Bittrain Login Resposponse After Decode: \n" . $response);
 
 		$user = $response['novus_user'][0];
 
