@@ -62,9 +62,10 @@ class UsersController extends Controller
 
 		$response = json_decode($response, true);
 
-		$user = $response['novus_user'][0];
+		/*$user = $response['novus_user'][0];
 
-		return response()->api($user);
+		return response()->api($user);*/
+		return response()->api($response);
 	}
 
 	public function testApiEndpoint()
