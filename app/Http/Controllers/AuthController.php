@@ -53,6 +53,70 @@ class AuthController extends Controller
         return (string) $response->getBody();
     }
 
+    public function reactLogin(Request $request)
+    {
+        $validatedData = $request->validate([
+            'bit_uname' => 'required',
+            'bit_password' => 'required'
+        ]);
+
+        $api_response = $this->authFromBittrain($validatedData);
+
+        // Slack Log
+        // app('log')->channel('slack')->debug("Bittrain Login Resposponse: \n" . $api_response);
+
+        $parsedData = json_decode($api_response, true);
+        // app('log')->channel('slack')->debug($parsedData);
+
+        /*$user = $parsedData['novus_user'][0];
+        return response()->api($user);*/
+
+        if ( isset($parsedData['novus_user'][0]['user_id']) ) {
+            $bittrain_user = $parsedData['novus_user'][0];
+
+            // app('log')->channel('slack')->debug($bittrain_user);
+
+
+            $user = User::find($bittrain_user['user_id']);
+
+            if ( !$user ) {
+                $user = new User([
+                    'id' => $bittrain_user['user_id'],
+                    'name' => $bittrain_user['full_name'],
+                    'email' => $bittrain_user['real_email'],
+                    'password' => ''
+                ]);
+
+                $user->save();
+            }
+
+
+            $tokenResult = $user->createToken('Personal Access Token');
+
+            $token = $tokenResult->token;
+
+            if ($request->remember_me)
+                $token->expires_at = Carbon::now()->addWeeks(1);
+
+            $token->save();
+
+            $response = [
+                'access_token' => $tokenResult->accessToken,
+                'token_type' => 'Bearer',
+                'expires_at' => Carbon::parse(
+                    $tokenResult->token->expires_at
+                )->toDateTimeString()
+            ];
+        } else {
+            $response = [
+                'code' => $parsedData['novus_user'][0]['code'],
+                'message' => $parsedData['novus_user'][0]['message']
+            ];
+        }
+        
+        return response()->api($response);
+    }
+
     /**
      * Create user
      *
@@ -90,7 +154,7 @@ class AuthController extends Controller
      * @return [string] token_type
      * @return [string] expires_at
      */
-    public function login(Request $request)
+    /*public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|string|email',
@@ -100,13 +164,13 @@ class AuthController extends Controller
 
         $credentials = request(['email', 'password']);
         
-        /*if(!Auth::attempt($credentials))
+        if(!Auth::attempt($credentials))
             return response()->json([
                 'message' => 'Unauthorized'
             ], 401);
 
-        $user = $request->user();*/
-        
+        $user = $request->user();
+
         $tokenResult = $user->createToken('Personal Access Token');
         
         $token = $tokenResult->token;
@@ -123,7 +187,7 @@ class AuthController extends Controller
                 $tokenResult->token->expires_at
             )->toDateTimeString()
         ]);
-    }
+    }*/
   
     /**
      * Logout user (Revoke the token)

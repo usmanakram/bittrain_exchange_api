@@ -90,12 +90,7 @@ class UsersController extends Controller
 				]);
 
 				$user->save();
-				
-				/*return response()->json([
-					'message' => 'Successfully created user!'
-				], 201);*/
 			}
-			// return response()->api($user);
 
 
 			$tokenResult = $user->createToken('Personal Access Token');
