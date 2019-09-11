@@ -14,6 +14,7 @@
         "guzzlehttp/guzzle": "^6.3",
         "jaggedsoft/php-binance-api": "@dev",
         "laravel/framework": "5.8.*",
+        "laravel/passport": "^7.4",
         "laravel/tinker": "^1.0",
         "pusher/pusher-php-server": "~3.0"
     },

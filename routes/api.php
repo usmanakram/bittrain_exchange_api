@@ -34,8 +34,23 @@ Route::get('/currencies/{currency}', 'CurrenciesController@currency');
 Route::get('/test-get-apiendpoint', 'UsersController@testApiEndpoint');
 Route::post('/test-post-apiendpoint', 'UsersController@testApiEndpoint');
 
-Route::get('/login', 'UsersController@login');
+/*Route::get('/login', 'UsersController@login');
 Route::get('/test-curl', 'UsersController@testCurl');
 
-Route::post('/react-login', 'UsersController@reactLogin');
+Route::post('/react-login', 'UsersController@reactLogin');*/
 // Route::options('/react-login', 'UsersController@reactLogin');
+
+
+Route::group([
+    'prefix' => 'auth'
+], function () {
+    Route::post('login', 'AuthController@login');
+    Route::post('signup', 'AuthController@signup');
+  
+    Route::group([
+      'middleware' => 'auth:api'
+    ], function() {
+        Route::get('logout', 'AuthController@logout');
+        Route::get('user', 'AuthController@user');
+    });
+});

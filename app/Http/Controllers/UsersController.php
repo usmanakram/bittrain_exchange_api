@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+// use Illuminate\Support\Facades\Log;
 use GuzzleHttp;
 use App\Word;
 
@@ -68,6 +69,10 @@ class UsersController extends Controller
 
 	public function testApiEndpoint()
 	{
+		// emergency, alert, critical, error, warning, notice, info and debug
+		// Log::channel('slack')->error('Hitting first log to slack');
+		app('log')->channel('slack')->error('Hitting first log to slack');
+
 		// return response()->json($response);
 		// return response()->api($response);
 		
