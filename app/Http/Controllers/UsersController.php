@@ -61,7 +61,7 @@ class UsersController extends Controller
 		$response = $this->authFromBittrain($validatedData);
 
 		$response = json_decode($response, true);
-		app('log')->channel('slack')->error('Hitting first log to slack');
+		app('log')->channel('slack')->debug('Hitting first log to slack');
 
 		/*$user = $response['novus_user'][0];
 
