@@ -75,7 +75,7 @@ class UsersController extends Controller
 		if ( isset($response['novus_user'][0]['user_id']) ) {
 			$bittrain_user = $response['novus_user'][0];
 
-			app('log')->channel('slack')->debug("Bittrain User: \n" . $bittrain_user);
+			app('log')->channel('slack')->debug($bittrain_user);
 
 
 			/*$user = User::find($bittrain_user[])
