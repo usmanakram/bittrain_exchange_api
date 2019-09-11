@@ -122,7 +122,7 @@ class UsersController extends Controller
 	{
 		// emergency, alert, critical, error, warning, notice, info and debug
 		// Log::channel('slack')->error('Hitting first log to slack');
-		app('log')->channel('slack')->error('Hitting first log to slack');
+		// app('log')->channel('slack')->error('Hitting first log to slack');
 
 		// return response()->json($response);
 		// return response()->api($response);

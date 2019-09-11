@@ -24,9 +24,9 @@ class ResponseMacroServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        Response::macro('api', function($response) {
+        Response::macro('api', function($response, $code = 200) {
             // return response()->json($response)->header('Access-Control-Allow-Origin', '*');
-            return Response::json($response)->header('Access-Control-Allow-Origin', '*');
+            return Response::json($response, $code)->header('Access-Control-Allow-Origin', '*');
         });
     }
 }
