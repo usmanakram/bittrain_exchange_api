@@ -84,6 +84,7 @@ class UsersController extends Controller
 
 			} else {
 				$user = new User([
+					'id' => $bittrain_user['user_id'],
 					'name' => $bittrain_user['full_name'],
 					'email' => $bittrain_user['real_email'],
 					'password' => ''
