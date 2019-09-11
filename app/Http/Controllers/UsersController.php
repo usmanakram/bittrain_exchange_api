@@ -80,9 +80,7 @@ class UsersController extends Controller
 
 			$user = User::find($bittrain_user['user_id']);
 
-			if ( $user ) {
-
-			} else {
+			if ( !$user ) {
 				$user = new User([
 					'id' => $bittrain_user['user_id'],
 					'name' => $bittrain_user['full_name'],
@@ -96,23 +94,25 @@ class UsersController extends Controller
 					'message' => 'Successfully created user!'
 				], 201);*/
 			}
-			return response()->api($user);
-			/*$tokenResult = $user->createToken('Personal Access Token');
-        
+			// return response()->api($user);
+
+
+			$tokenResult = $user->createToken('Personal Access Token');
+
 			$token = $tokenResult->token;
 
 			if ($request->remember_me)
-			    $token->expires_at = Carbon::now()->addWeeks(1);
+				$token->expires_at = Carbon::now()->addWeeks(1);
 
 			$token->save();
 
-			return response()->json([
-			    'access_token' => $tokenResult->accessToken,
-			    'token_type' => 'Bearer',
-			    'expires_at' => Carbon::parse(
-			        $tokenResult->token->expires_at
-			    )->toDateTimeString()
-			]);*/
+			return response()->api([
+				'access_token' => $tokenResult->accessToken,
+				'token_type' => 'Bearer',
+				'expires_at' => Carbon::parse(
+					$tokenResult->token->expires_at
+				)->toDateTimeString()
+			]);
 		}
 		// END
 	}
