@@ -100,21 +100,21 @@ class AuthController extends Controller
 
             $token->save();
 
-            $response = [
+            return response()->api([
                 'access_token' => $tokenResult->accessToken,
                 'token_type' => 'Bearer',
                 'expires_at' => Carbon::parse(
                     $tokenResult->token->expires_at
                 )->toDateTimeString()
-            ];
+            ]);
         } else {
-            $response = [
+            return response()-> api([
                 'code' => $parsedData['novus_user'][0]['code'],
                 'message' => $parsedData['novus_user'][0]['message']
-            ];
+            ], 400);
         }
         
-        return response()->api($response);
+        // return response()->api($response);
     }
 
     /**
