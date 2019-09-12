@@ -66,7 +66,7 @@ class AuthController extends Controller
         // app('log')->channel('slack')->debug("Bittrain Login Resposponse: \n" . $api_response);
 
         $parsedData = json_decode($api_response, true);
-        // app('log')->channel('slack')->debug($parsedData);
+        app('log')->channel('slack')->debug($parsedData);
 
         /*$user = $parsedData['novus_user'][0];
         return response()->api($user);*/
@@ -108,10 +108,7 @@ class AuthController extends Controller
                 )->toDateTimeString()
             ]);
         } else {
-            return response()-> api([
-                'code' => $parsedData['novus_user'][0]['code'],
-                'message' => $parsedData['novus_user'][0]['message']
-            ], 400);
+            return response()->api($parsedData['novus_user'][0]['message'], 400);
         }
         
         // return response()->api($response);
