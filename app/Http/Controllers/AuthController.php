@@ -110,8 +110,6 @@ class AuthController extends Controller
         } else {
             return response()->api($parsedData['novus_user'][0]['message'], 400);
         }
-        
-        // return response()->api($response);
     }
 
     /**
@@ -206,6 +204,7 @@ class AuthController extends Controller
      */
     public function user(Request $request)
     {
-        return response()->json($request->user());
+        // return response()->json($request->user());
+        return response()->api($request->user());
     }
 }
