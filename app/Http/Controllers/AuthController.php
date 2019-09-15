@@ -66,7 +66,26 @@ class AuthController extends Controller
         // app('log')->channel('slack')->debug("Bittrain Login Resposponse: \n" . $api_response);
 
         $parsedData = json_decode($api_response, true);
-        app('log')->channel('slack')->debug($parsedData);
+        // app('log')->channel('slack')->debug($parsedData);
+
+        /*$parsedData = array (
+            'novus_user' => array (
+                0 => array (
+                    'user_id' => '538',
+                    'full_name' => 'Tabassum Ali',
+                    'real_email' => 'tabassumali970@hotmail.com',
+                    'username' => 'tabassumali21',
+                    'pic_url' => 'https://www.bittrain.org/sample/Profiles/538/Snapchat-181798176.jpg',
+                    'create_date' => '2018-09-21',
+                    'invest_amount' => '',
+                    'total_earnings' => '0',
+                    'roi_earnings' => '100',
+                    'roi_coins' => '8.58',
+                    'package_coins' => NULL,
+                    'token' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNTM4IiwiZnVsbF9uYW1lIjoiVGFiYXNzdW0gQWxpIiwicmVhbF9lbWFpbCI6InRhYmFzc3VtYWxpOTcwQGhvdG1haWwuY29tIiwidXNlcm5hbWUiOiJ0YWJhc3N1bWFsaTIxIiwiY3JlYXRlX2RhdGUiOiIyMDE4LTA5LTIxIn0.7QMu24Btw2aVh828O8uaQPVJ8_hoEXA1_zXXxXjlSXI',
+                ),
+            ),
+        );*/
 
         /*$user = $parsedData['novus_user'][0];
         return response()->api($user);*/
