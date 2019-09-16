@@ -60,10 +60,21 @@ class AuthController extends Controller
             'bit_password' => 'required'
         ]);
 
-        $api_response = $this->authFromBittrain($validatedData);
+        try {
 
-        // Slack Log
-        // app('log')->channel('slack')->debug("Bittrain Login Resposponse: \n" . $api_response);
+            $api_response = $this->authFromBittrain($validatedData);
+
+        } catch (\Exception $e) {
+            // Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+            app('log')->channel('slack')->emergency(
+                "Bittrain Login Resposponse: \n" . 
+                "*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+                "*User:* " . json_encode($validatedData) . "\n" . 
+                $e->getMessage()
+            );
+
+            return response()->api('Some error occurred. Please, try again later', 400);
+        }
 
         $parsedData = json_decode($api_response, true);
         // app('log')->channel('slack')->debug($parsedData);
@@ -87,17 +98,14 @@ class AuthController extends Controller
             ),
         );*/
 
-        /*$user = $parsedData['novus_user'][0];
-        return response()->api($user);*/
-
         if ( isset($parsedData['novus_user'][0]['user_id']) ) {
             $bittrain_user = $parsedData['novus_user'][0];
 
             // app('log')->channel('slack')->debug($bittrain_user);
 
-
             $user = User::find($bittrain_user['user_id']);
 
+            // Create user
             if ( !$user ) {
                 $user = new User([
                     'id' => $bittrain_user['user_id'],
@@ -108,6 +116,15 @@ class AuthController extends Controller
 
                 $user->save();
             }
+
+            // Create / Update user's bittrain data
+            if ($user->bittrain_detail) {
+                $user->bittrain_detail->data = $api_response;
+                $user->bittrain_detail->save();
+            } else {
+                $user->bittrain_detail()->create(['data' => $api_response]);
+            }
+            // $user->bittrain_detail()->updateOrCreate(['data' => $api_response]);
 
 
             $tokenResult = $user->createToken('Personal Access Token');

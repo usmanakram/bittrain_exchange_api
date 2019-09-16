@@ -42,4 +42,9 @@ class User extends Authenticatable
     {
         return $this->hasOne(Bittrain_detail::class);
     }
+
+    public function user_deposit_addresses()
+    {
+        return $this->hasMany(User_deposit_address::class);
+    }
 }

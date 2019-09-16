@@ -11,6 +11,11 @@ use App\User;
 
 class UsersController extends Controller
 {
+	public function depositAddresses(Request $request)
+	{
+		return response()->api($request->user()->user_deposit_addresses);
+	}
+
 	private function convertTimeToString($time)
 	{
 		$alphabets = 'abcdefghij';

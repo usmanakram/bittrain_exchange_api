@@ -34,6 +34,8 @@ Route::get('/currencies/{currency}', 'CurrenciesController@currency');
 Route::get('/test-get-apiendpoint', 'UsersController@testApiEndpoint');
 Route::post('/test-post-apiendpoint', 'UsersController@testApiEndpoint');
 
+Route::post('/coinpayments-ipn', 'IpnsController@coinpayments');
+
 /*Route::get('/login', 'UsersController@login');
 Route::get('/test-curl', 'UsersController@testCurl');
 
@@ -52,5 +54,6 @@ Route::group([
     ], function() {
         Route::get('logout', 'AuthController@logout');
         Route::get('user', 'AuthController@user');
+        Route::get('user-deposit-addresses', 'UsersController@depositAddresses');
     });
 });
