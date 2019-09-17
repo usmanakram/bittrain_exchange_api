@@ -42,6 +42,7 @@ Route::get('/test-curl', 'UsersController@testCurl');
 Route::post('/react-login', 'UsersController@reactLogin');*/
 // Route::options('/react-login', 'UsersController@reactLogin');
 
+Route::get('get-all-currencies', 'CurrenciesController@getAllCurrencies');
 
 Route::group([
     'prefix' => 'auth'
@@ -54,6 +55,8 @@ Route::group([
     ], function() {
         Route::get('logout', 'AuthController@logout');
         Route::get('user', 'AuthController@user');
-        Route::get('user-deposit-addresses', 'UsersController@depositAddresses');
+        
+        Route::get('get-deposit-address/{currency}', 'TransactionsController@getDepositAddress');
+        Route::get('get-transactions-history', 'TransactionsController@getTransactionsHistory');
     });
 });

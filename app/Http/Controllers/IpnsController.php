@@ -18,20 +18,20 @@ class IpnsController extends Controller
 		);
 	}
 
-    public function coinpayments()
-    {
-    	$merchant_id = env('COINPAYMENTS_MERCHANT_ID');
-    	$secret = env('COINPAYMENTS_SECRET');
+	public function coinpayments()
+	{
+		$merchant_id = env('COINPAYMENTS_MERCHANT_ID');
+		$secret = env('COINPAYMENTS_SECRET');
 
-    	if (!$merchant_id || !$secret) {
-    		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+		if (!$merchant_id || !$secret) {
+			// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
 			app('log')->channel('slack')->warning(
 				"Coinpayments IPN: \n" . 
 				"*Data:* " . json_encode($_POST) . "\n" . 
 				"*Error:* Kindly, put Coinpayments Merchant ID and Secret in .env file");
 
 			return response()->api('Some error occurred. Please, try again later', 400);
-    	}
+		}
 
 		if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
 			$this->slackFakeIpnAlert('No HMAC signature sent');

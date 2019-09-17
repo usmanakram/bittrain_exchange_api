@@ -56,11 +56,11 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validatedData = $request->validate([
-            'bit_uname' => 'required',
+            'bit_uname' => 'required|string',
             'bit_password' => 'required'
         ]);
 
-        try {
+        /*try {
 
             $api_response = $this->authFromBittrain($validatedData);
 
@@ -76,10 +76,10 @@ class AuthController extends Controller
             return response()->api('Some error occurred. Please, try again later', 400);
         }
 
-        $parsedData = json_decode($api_response, true);
+        $parsedData = json_decode($api_response, true);*/
         // app('log')->channel('slack')->debug($parsedData);
 
-        /*$parsedData = array (
+        $parsedData = array (
             'novus_user' => array (
                 0 => array (
                     'user_id' => '538',
@@ -96,7 +96,8 @@ class AuthController extends Controller
                     'token' => 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiNTM4IiwiZnVsbF9uYW1lIjoiVGFiYXNzdW0gQWxpIiwicmVhbF9lbWFpbCI6InRhYmFzc3VtYWxpOTcwQGhvdG1haWwuY29tIiwidXNlcm5hbWUiOiJ0YWJhc3N1bWFsaTIxIiwiY3JlYXRlX2RhdGUiOiIyMDE4LTA5LTIxIn0.7QMu24Btw2aVh828O8uaQPVJ8_hoEXA1_zXXxXjlSXI',
                 ),
             ),
-        );*/
+        );
+        $api_response = json_encode($parsedData);
 
         if ( isset($parsedData['novus_user'][0]['user_id']) ) {
             $bittrain_user = $parsedData['novus_user'][0];

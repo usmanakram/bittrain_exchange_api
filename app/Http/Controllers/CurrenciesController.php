@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Historical_price;
 use App\Latest_price;
+use App\Currency;
 
 class CurrenciesController extends Controller
 {
@@ -37,4 +38,9 @@ class CurrenciesController extends Controller
 		// return response()->json($response);
 		return response()->api($response);
     }
+
+	public function getAllCurrencies()
+	{
+		return response()->api( Currency::get(['name', 'symbol']) );
+	}
 }

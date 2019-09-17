@@ -29,7 +29,8 @@ class CreateCoinpaymentsTransactionsTable extends Migration
             $table->string('ipn_mode', 10);
             $table->string('ipn_type', 10);
             $table->string('ipn_version', 10);
-            $table->string('label', 100);
+            // $table->string('label', 100);
+            $table->integer('label');
             $table->string('merchant', 100);
             $table->integer('status');
             $table->string('status_text', 100);
