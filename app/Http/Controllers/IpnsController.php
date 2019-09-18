@@ -69,6 +69,13 @@ class IpnsController extends Controller
 
 		//process IPN here
 
+		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+		app('log')->channel('slack')->debug(
+			"Coinpayments IPN: \n" . 
+			"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+			"*Data:* " . json_encode($_POST)
+		);
+
 		try {
 			
 			$currency = Currency::firstOrCreate(
