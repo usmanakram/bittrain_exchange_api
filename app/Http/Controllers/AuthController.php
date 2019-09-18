@@ -60,7 +60,7 @@ class AuthController extends Controller
             'bit_password' => 'required'
         ]);
 
-        try {
+        /*try {
 
             $api_response = $this->authFromBittrain($validatedData);
 
@@ -76,10 +76,10 @@ class AuthController extends Controller
             return response()->api('Some error occurred. Please, try again later', 400);
         }
 
-        $parsedData = json_decode($api_response, true);
+        $parsedData = json_decode($api_response, true);*/
         // app('log')->channel('slack')->debug($parsedData);
 
-        /*$parsedData = array (
+        $parsedData = array (
             'novus_user' => array (
                 0 => array (
                     'user_id' => '538',
@@ -97,7 +97,7 @@ class AuthController extends Controller
                 ),
             ),
         );
-        $api_response = json_encode($parsedData);*/
+        $api_response = json_encode($parsedData);
 
         if ( isset($parsedData['novus_user'][0]['user_id']) ) {
             $bittrain_user = $parsedData['novus_user'][0];

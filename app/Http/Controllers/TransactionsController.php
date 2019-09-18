@@ -99,8 +99,13 @@ class TransactionsController extends Controller
 	{
 		// $request->validate(['type' => 'required|string']);
 
+		// return response()->api('good to see you');
+		// return response()->api($request->user());
+
 		$history =  Coinpayments_transaction::where('label', $request->user()->id)
-			->get(['address', 'amount', 'confirms', 'currency_id', 'fee', 'fiat_amount', 'fiat_coin', 'fiat_fee', 'label', 'status', 'status_text', 'txn_id', 'created_at', 'updated_at']);
+			->with('currency')
+			->get();
+			// ->get(['address', 'amount', 'confirms', 'currency_id', 'fee', 'fiat_amount', 'fiat_coin', 'fiat_fee', 'label', 'status', 'status_text', 'txn_id', 'created_at', 'updated_at']);
 
 		return response()->api($history);
 	}

@@ -13,6 +13,7 @@ class IpnsController extends Controller
 		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
 		app('log')->channel('slack')->alert(
 			"Coinpayments IPN: \n" . 
+			"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
 			"*Data:* " . json_encode($_POST) . "\n" . 
 			"*Error:* Someone trying to hit fake ipn. " . $message
 		);
