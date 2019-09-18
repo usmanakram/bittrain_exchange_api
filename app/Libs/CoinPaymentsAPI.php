@@ -150,7 +150,7 @@ class CoinPaymentsAPI {
 		}
 		
 		// Set the API command and required fields
-    $req['version'] = 1;
+		$req['version'] = 1;
 		$req['cmd'] = $cmd;
 		$req['key'] = $this->public_key;
 		//$req['merchant'] = '12345';

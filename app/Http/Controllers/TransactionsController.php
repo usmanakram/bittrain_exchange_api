@@ -10,7 +10,7 @@ use App\Coinpayments_transaction;
 
 class TransactionsController extends Controller
 {
-	private function generateGetCallbackAddress($currency, $user_id)
+	private function generateGetCallbackAddress($user_id, $currency)
 	{
 		$private_key = env('COINPAYMENTS_API_PRIVATE_KEY');
     	$public_key = env('COINPAYMENTS_API_PUBLIC_KEY');
@@ -20,7 +20,7 @@ class TransactionsController extends Controller
 		}
 
 		$cps = new CoinPaymentsAPI();
-		$cps->Setup('8A354ce6E1aFba2Da19ceAea567457b6323072ac9fa3150528F130B2A81Cf679', '194c514842a2c3eed304d87ee29ae5fcb0452b3b95852027fb3b40f8c2c7545b');
+		$cps->Setup($private_key, $public_key);
 
 		// $currency = 'BTC';
 		// $ipn_url = 'http://18.220.217.218/coinpayments/ipn.php';
@@ -65,7 +65,7 @@ class TransactionsController extends Controller
 
 			try {
 				// generate address using CoinPaymentsAPI
-				$response = $this->generateGetCallbackAddress($currency, $user_id);
+				$response = $this->generateGetCallbackAddress($user_id, $currency);
 				
 				$address = new User_deposit_address([
 					'user_id' => $user_id,
