@@ -18,7 +18,7 @@ class IpnsController extends Controller
 		);
 	}
 
-	public function coinpayments()
+	public function coinpayments($user_id)
 	{
 		$merchant_id = env('COINPAYMENTS_MERCHANT_ID');
 		$secret = env('COINPAYMENTS_SECRET');

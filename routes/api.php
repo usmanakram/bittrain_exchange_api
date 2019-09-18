@@ -34,7 +34,7 @@ Route::get('/currencies/{currency}', 'CurrenciesController@currency');
 Route::get('/test-get-apiendpoint', 'UsersController@testApiEndpoint');
 Route::post('/test-post-apiendpoint', 'UsersController@testApiEndpoint');
 
-Route::post('/coinpayments-ipn', 'IpnsController@coinpayments');
+Route::post('/coinpayments-ipn/{user_id}', 'IpnsController@coinpayments');
 
 /*Route::get('/login', 'UsersController@login');
 Route::get('/test-curl', 'UsersController@testCurl');
