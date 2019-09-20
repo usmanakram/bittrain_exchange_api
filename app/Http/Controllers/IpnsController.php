@@ -108,7 +108,7 @@ class IpnsController extends Controller
 	{
 		/*$merchant_id = config('app.COINPAYMENTS_MERCHANT_ID');
 		$secret = config('app.COINPAYMENTS_SECRET');*/
-		
+
 		$merchant_id = env('COINPAYMENTS_MERCHANT_ID');
 		$secret = env('COINPAYMENTS_SECRET');
 
@@ -123,11 +123,11 @@ class IpnsController extends Controller
 			return response()->api('Some error occurred. Please, try again later', 400);
 		}
 
-		/*if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
+		if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
 			$this->slackFakeIpnAlert('No HMAC signature sent');
 
 			die("No HMAC signature sent");
-		}*/
+		}
 
 		$merchant = isset($_POST['merchant']) ? $_POST['merchant']:'';
 		if (empty($merchant)) {
@@ -149,21 +149,22 @@ class IpnsController extends Controller
 			die("Error reading POST data");
 		}
 
-		/*$hmac = hash_hmac("sha512", $request, $secret);
+		$hmac = hash_hmac("sha512", $request, $secret);
 		if ($hmac != $_SERVER['HTTP_HMAC']) {
 			$this->slackFakeIpnAlert('HMAC signature does not match');
 			
 			die("HMAC signature does not match");
-		}*/
+		}
 
 		//process IPN here
 
 		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
-		/*Log::channel('slack')->debug(
+		Log::channel('slack')->debug(
 			"Coinpayments IPN: \n" . 
 			"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
-			"*Data:* " . json_encode($_POST)
-		);*/
+			"*Data:* " . json_encode($_POST) . "\n" . 
+			"*Status:* After authentication, Before handling IPN"
+		);
 
 		DB::beginTransaction();
 
