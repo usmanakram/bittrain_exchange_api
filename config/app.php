@@ -229,4 +229,16 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Custom configuration variables
+    |--------------------------------------------------------------------------
+    |
+    */
+
+    'COINPAYMENTS_MERCHANT_ID' => env('COINPAYMENTS_MERCHANT_ID', null),
+    'COINPAYMENTS_SECRET' => env('COINPAYMENTS_SECRET', null),
+    'COINPAYMENTS_API_PRIVATE_KEY' => env('COINPAYMENTS_API_PRIVATE_KEY', null),
+    'COINPAYMENTS_API_PUBLIC_KEY' => env('COINPAYMENTS_API_PUBLIC_KEY', null),
+
 ];

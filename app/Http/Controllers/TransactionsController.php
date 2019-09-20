@@ -7,13 +7,17 @@ use App\Libs\CoinPaymentsAPI;
 use App\Currency;
 use App\User_deposit_address;
 use App\Coinpayments_transaction;
+use App\Transaction;
 
 class TransactionsController extends Controller
 {
 	private function generateGetCallbackAddress($user_id, $currency)
 	{
+		/*$private_key = config('app.COINPAYMENTS_API_PRIVATE_KEY');
+		$public_key = config('app.COINPAYMENTS_API_PUBLIC_KEY');*/
+
 		$private_key = env('COINPAYMENTS_API_PRIVATE_KEY');
-    	$public_key = env('COINPAYMENTS_API_PUBLIC_KEY');
+		$public_key = env('COINPAYMENTS_API_PUBLIC_KEY');
 
     	if (!$private_key || !$public_key) {
 			throw new \Exception('Kindly, put Coinpayments private and public keys in .env file.');
@@ -35,19 +39,30 @@ class TransactionsController extends Controller
 	{
 		// Get logged in user's "user_deposit_addresses" JOIN with "currency"
 
-		/*$address = $request->user()
-			->user_deposit_addresses()
-			->with('currency')
-			->whereHas('currency', function($query) use ($currency) {
-				$query->where('symbol', strtoupper($currency));
-			})->first();*/
-
-		$address = User_deposit_address::where('user_id', $user_id)
+		/*$address = User_deposit_address::where('user_id', $user_id)
 			->with('currency')
 			->whereHas('currency', function($query) use ($currency) {
 				$query->where('symbol', strtoupper($currency));
 			})
+			->first();*/
+
+		$address = User_deposit_address::where('user_id', $user_id)
+			->with([
+				'currency', 
+				'currency.balances' => function($query) use ($user_id) {
+					$query->where('user_id', $user_id);
+				}
+			])
+			->whereHas('currency', function($query) use ($currency) {
+				$query->where('symbol', strtoupper($currency));
+			})
 			->first();
+
+		$address['currency_name'] = $address->currency->name;
+		$address['currency_symbol'] = $address->currency->symbol;
+		$address['total_balance'] = $address->currency->balances[0]['total_balance'] ?? 0;
+		$address['in_order_balance'] = $address->currency->balances[0]['in_order_balance'] ?? 0;
+		// unset($address->currency);
 
 		return $address;
 	}
@@ -102,10 +117,9 @@ class TransactionsController extends Controller
 		// return response()->api('good to see you');
 		// return response()->api($request->user());
 
-		$history =  Coinpayments_transaction::where('label', $request->user()->id)
-			->with('currency')
+		$history =  Transaction::where('user_id', $request->user()->id)
+			->with('currency:id,name,symbol')
 			->get();
-			// ->get(['address', 'amount', 'confirms', 'currency_id', 'fee', 'fiat_amount', 'fiat_coin', 'fiat_fee', 'label', 'status', 'status_text', 'txn_id', 'created_at', 'updated_at']);
 
 		return response()->api($history);
 	}

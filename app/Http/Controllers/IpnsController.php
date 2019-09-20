@@ -106,6 +106,9 @@ class IpnsController extends Controller
 
 	public function coinpayments($user_id)
 	{
+		/*$merchant_id = config('app.COINPAYMENTS_MERCHANT_ID');
+		$secret = config('app.COINPAYMENTS_SECRET');*/
+		
 		$merchant_id = env('COINPAYMENTS_MERCHANT_ID');
 		$secret = env('COINPAYMENTS_SECRET');
 
@@ -247,7 +250,7 @@ class IpnsController extends Controller
 			DB::commit();
 
 			// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
-			Log::channel('slack')->critical(
+			Log::channel('slack')->debug(
 				"Coinpayments IPN: \n" . 
 				"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
 				"*Data:* " . json_encode($_POST) . "\n" . 

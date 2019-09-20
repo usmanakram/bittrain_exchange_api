@@ -58,5 +58,6 @@ Route::group([
         
         Route::get('get-deposit-address/{currency}', 'TransactionsController@getDepositAddress');
         Route::get('get-transactions-history', 'TransactionsController@getTransactionsHistory');
+        Route::get('get-balances', 'CurrenciesController@getBalances');
     });
 });
