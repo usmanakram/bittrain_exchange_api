@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use App\Currency;
 use App\Coinpayments_transaction;
+use App\Transaction;
+use App\Balance;
 
 class IpnsController extends Controller
 {
@@ -19,6 +23,87 @@ class IpnsController extends Controller
 		);
 	}
 
+	private function insertCoinpayments($user_id, $currency_id)
+	{
+		$coinpayments = Coinpayments_transaction::create([
+			'deposit_id' => $_POST['deposit_id'], 
+			'txn_id' => $_POST['txn_id'],
+			'address' => $_POST['address'],
+			'amount' => $_POST['amount'],
+			'confirms' => $_POST['confirms'],
+			'currency_id' => $currency_id,
+			'fee' => (isset($_POST['fee']) ? $_POST['fee'] : 0),
+			'fiat_amount' => $_POST['fiat_amount'],
+			'fiat_coin' => $_POST['fiat_coin'],
+			'fiat_fee' => (isset($_POST['fiat_fee']) ? $_POST['fiat_fee'] : 0),
+			'ipn_id' => $_POST['ipn_id'],
+			'ipn_mode' => $_POST['ipn_mode'],
+			'ipn_type' => $_POST['ipn_type'],
+			'ipn_version' => $_POST['ipn_version'],
+			'label' => $_POST['label'],
+			'merchant' => $_POST['merchant'],
+			'status' => $_POST['status'],
+			'status_text' => $_POST['status_text'],
+			'ipn_log' => '[]'
+		]);
+
+		$transaction = Transaction::create([
+			'user_id' => $user_id,
+			'currency_id' => $currency_id,
+			'type' => 'deposit',
+			'payment_gateway' => 'coinpayments',
+			'payment_gateway_table_id' => $coinpayments->id,
+			'address' => $_POST['address'],
+			'amount' => $_POST['amount'],
+			'confirmations' => $_POST['confirms'],
+			'txn_id' => $_POST['txn_id'],
+			'status' => $_POST['status'],
+			'status_text' => $_POST['status_text']
+		]);
+
+		return compact('coinpayments', 'transaction');
+	}
+	
+	private function updateCoinpayments($coinpayments, $transaction)
+	{
+		$coinpayments->fill([
+			'address' => $_POST['address'],
+			'amount' => $_POST['amount'],
+			'confirms' => $_POST['confirms'],
+			'fee' => (isset($_POST['fee']) ? $_POST['fee'] : 0),
+			'fiat_amount' => $_POST['fiat_amount'],
+			'fiat_coin' => $_POST['fiat_coin'],
+			'fiat_fee' => (isset($_POST['fiat_fee']) ? $_POST['fiat_fee'] : 0),
+			'ipn_id' => $_POST['ipn_id'],
+			'ipn_mode' => $_POST['ipn_mode'],
+			'ipn_type' => $_POST['ipn_type'],
+			'ipn_version' => $_POST['ipn_version'],
+			'label' => $_POST['label'],
+			'merchant' => $_POST['merchant'],
+			'status' => $_POST['status'],
+			'status_text' => $_POST['status_text']
+		]);
+
+		$transaction->fill([
+			'address' => $_POST['address'],
+			'amount' => $_POST['amount'],
+			'confirmations' => $_POST['confirms'],
+			'txn_id' => $_POST['txn_id'],
+			'status' => $_POST['status'],
+			'status_text' => $_POST['status_text']
+		]);
+	}
+
+	private function increateUserBalance($user_id, $currency_id, $amount)
+	{
+		$balance = Balance::firstOrCreate(
+			['user_id' => $user_id, 'currency_id' => $currency_id],
+			['in_order_balance' => 0, 'total_balance' => 0]
+		);
+
+		return $balance->increment('total_balance', $amount);
+	}
+
 	public function coinpayments($user_id)
 	{
 		$merchant_id = env('COINPAYMENTS_MERCHANT_ID');
@@ -26,19 +111,20 @@ class IpnsController extends Controller
 
 		if (!$merchant_id || !$secret) {
 			// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
-			app('log')->channel('slack')->warning(
+			Log::channel('slack')->warning(
 				"Coinpayments IPN: \n" . 
+				"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
 				"*Data:* " . json_encode($_POST) . "\n" . 
 				"*Error:* Kindly, put Coinpayments Merchant ID and Secret in .env file");
 
 			return response()->api('Some error occurred. Please, try again later', 400);
 		}
 
-		if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
+		/*if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
 			$this->slackFakeIpnAlert('No HMAC signature sent');
 
 			die("No HMAC signature sent");
-		}
+		}*/
 
 		$merchant = isset($_POST['merchant']) ? $_POST['merchant']:'';
 		if (empty($merchant)) {
@@ -60,21 +146,23 @@ class IpnsController extends Controller
 			die("Error reading POST data");
 		}
 
-		$hmac = hash_hmac("sha512", $request, $secret);
+		/*$hmac = hash_hmac("sha512", $request, $secret);
 		if ($hmac != $_SERVER['HTTP_HMAC']) {
 			$this->slackFakeIpnAlert('HMAC signature does not match');
 			
 			die("HMAC signature does not match");
-		}
+		}*/
 
 		//process IPN here
 
 		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
-		app('log')->channel('slack')->debug(
+		/*Log::channel('slack')->debug(
 			"Coinpayments IPN: \n" . 
 			"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
 			"*Data:* " . json_encode($_POST)
-		);
+		);*/
+
+		DB::beginTransaction();
 
 		try {
 			
@@ -83,7 +171,7 @@ class IpnsController extends Controller
 				['name' => $_POST['currency']]
 			);
 
-			$transaction = Coinpayments_transaction::updateOrCreate(
+			/*$transaction = Coinpayments_transaction::updateOrCreate(
 				[
 					'deposit_id' => $_POST['deposit_id'], 
 					'txn_id' => $_POST['txn_id']
@@ -93,10 +181,10 @@ class IpnsController extends Controller
 					'amount' => $_POST['amount'],
 					'confirms' => $_POST['confirms'],
 					'currency_id' => $currency->id,
-					'fee' => $_POST['fee'],
+					'fee' => (isset($_POST['fee']) ? $_POST['fee'] : 0),
 					'fiat_amount' => $_POST['fiat_amount'],
 					'fiat_coin' => $_POST['fiat_coin'],
-					'fiat_fee' => $_POST['fiat_fee'],
+					'fiat_fee' => (isset($_POST['fiat_fee']) ? $_POST['fiat_fee'] : 0),
 					'ipn_id' => $_POST['ipn_id'],
 					'ipn_mode' => $_POST['ipn_mode'],
 					'ipn_type' => $_POST['ipn_type'],
@@ -106,16 +194,83 @@ class IpnsController extends Controller
 					'status' => $_POST['status'],
 					'status_text' => $_POST['status_text'],
 				]
-			);
+			);*/
 
+			// START
+			$status = '';
+			$coinpayments = Coinpayments_transaction::where(['deposit_id' => $_POST['deposit_id'], 'txn_id' => $_POST['txn_id']])->first();
+			if ( !$coinpayments ) {
+				// Insert
+				$status = 'insert';
+				list(
+					'coinpayments' => $coinpayments, 
+					'transaction' => $transaction
+				) = $this->insertCoinpayments($user_id, $currency->id);
+
+
+				if ($_POST['status'] === '100') {
+					// Update user balance
+					$status = 'update user balance in first hit';
+					$balance = $this->increateUserBalance($user_id, $currency->id, $_POST['amount']);
+				}
+
+			} elseif ($_POST['status'] === '100' && $coinpayments->status !== 100) {
+				// Update
+				$status = 'update';
+
+				$transaction = Transaction::where([
+					'payment_gateway' => 'coinpayments', 
+					'payment_gateway_table_id' => $coinpayments->id
+				])
+				->first();
+
+				$this->updateCoinpayments($coinpayments, $transaction);
+				$transaction->save();
+				// $coinpayments->save();
+
+
+				// Update user balance
+				$status = 'update user balance';
+				$balance = $this->increateUserBalance($user_id, $currency->id, $_POST['amount']);
+
+			} else {
+				$status = 'nothing happened';
+			}
+
+			$ipn_log = json_decode($coinpayments->ipn_log);
+			$ipn_log[] = $_POST;
+			$ipn_log = json_encode($ipn_log);
+
+			$coinpayments->fill(['ipn_log' => $ipn_log]);
+
+			$coinpayments->save();
+			DB::commit();
+
+			// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+			Log::channel('slack')->critical(
+				"Coinpayments IPN: \n" . 
+				"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+				"*Data:* " . json_encode($_POST) . "\n" . 
+				"*Status:* " . $status
+			);
+			// END
+
+			// return response()->api($coinpayments->wasRecentlyCreated, 200);
+			// return response()->api($coinpayments->wasChanged(), 200);
 			return response()->api('', 204);
 
 		} catch (\Exception $e) {
+			DB::rollBack();
+			
+			$error_msg = "ERROR at \nLine: " . $e->getLine() . "\nFILE: " . $e->getFile() . "\nActual File: " . __FILE__ . "\nMessage: ".$e->getMessage();
+            Log::error($error_msg);
+
 			// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
-			app('log')->channel('slack')->critical(
+			Log::channel('slack')->critical(
 				"Coinpayments IPN: \n" . 
+				"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
 				"*Data:* " . json_encode($_POST) . "\n" . 
-				"*Error:* " . $e->getMessage()
+				"*Error:* " . $error_msg
 			);
 
 			return response()->api('Some error occurred. Please, try again later', 400);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 use App\User;
 use App\Word;
@@ -60,13 +61,13 @@ class AuthController extends Controller
             'bit_password' => 'required'
         ]);
 
-        try {
+        /*try {
 
             $api_response = $this->authFromBittrain($validatedData);
 
         } catch (\Exception $e) {
             // Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
-            app('log')->channel('slack')->emergency(
+            Log::channel('slack')->emergency(
                 "Bittrain Login Resposponse: \n" . 
                 "*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
                 "*User:* " . json_encode($validatedData) . "\n" . 
@@ -76,10 +77,10 @@ class AuthController extends Controller
             return response()->api('Some error occurred. Please, try again later', 400);
         }
 
-        $parsedData = json_decode($api_response, true);
+        $parsedData = json_decode($api_response, true);*/
         // app('log')->channel('slack')->debug($parsedData);
 
-        /*$parsedData = array (
+        $parsedData = array (
             'novus_user' => array (
                 0 => array (
                     'user_id' => '538',
@@ -97,12 +98,12 @@ class AuthController extends Controller
                 ),
             ),
         );
-        $api_response = json_encode($parsedData);*/
+        $api_response = json_encode($parsedData);
 
         if ( isset($parsedData['novus_user'][0]['user_id']) ) {
             $bittrain_user = $parsedData['novus_user'][0];
 
-            // app('log')->channel('slack')->debug($bittrain_user);
+            // Log::channel('slack')->debug($bittrain_user);
 
             $user = User::find($bittrain_user['user_id']);
 

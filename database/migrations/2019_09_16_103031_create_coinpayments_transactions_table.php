@@ -39,6 +39,8 @@ class CreateCoinpaymentsTransactionsTable extends Migration
             [currency] => BTC
             [fiat_coin] => USD
             */
+            // ALTER TABLE `coinpayments_transactions` ADD `log` LONGTEXT NOT NULL AFTER `txn_id`;
+            // ALTER TABLE `coinpayments_transactions` ADD `ipn_log` JSON NOT NULL AFTER `txn_id`;
             $table->timestamps();
         });
     }

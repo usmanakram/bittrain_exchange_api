@@ -17,4 +17,14 @@ class Currency extends Model
     {
     	return $this->hasMany(User_deposit_address::class);
     }
+
+    public function transactions()
+    {
+    	return $this->hasMany(Transactions::class);
+    }
+
+    public function balances()
+    {
+        return $this->hasMany(Balance::class);
+    }
 }
