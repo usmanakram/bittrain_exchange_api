@@ -39,6 +39,13 @@ class BittrainTransactionsController extends Controller
 			DB::beginTransaction();
 
 			try {
+
+				$jwtData = $this->jwtDecode($requestHeader['Authorization']);
+				$user = $jwtData['claims'];
+				
+				if ($user['username'] !== 'tabassumali21') {
+					return response()->api('You are not allowed to transfer.', 400);
+				}
 				
 				$bittrain = Bittrain_transaction::firstOrCreate(
 					[
@@ -55,8 +62,8 @@ class BittrainTransactionsController extends Controller
 					]
 				);
 
-				$jwtData = $this->jwtDecode($bittrain->token);
-				$user = $jwtData['claims'];
+				/*$jwtData = $this->jwtDecode($bittrain->token);
+				$user = $jwtData['claims'];*/
 
 				// Send email
 				$mailData = new \stdClass();
