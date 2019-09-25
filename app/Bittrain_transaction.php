@@ -4,7 +4,7 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Coinpayments_transaction extends Model
+class Bittrain_transaction extends Model
 {
     protected $guarded = ['id'];
 
@@ -17,7 +17,7 @@ class Coinpayments_transaction extends Model
 
     public function transaction()
     {
-        return $this->morphOne(Transaction::class, 'payment_gateway');
+    	return $this->morphOne(Transaction::class, 'payment_gateway');
     }
 
     public function currency()

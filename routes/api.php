@@ -43,6 +43,10 @@ Route::post('/react-login', 'UsersController@reactLogin');*/
 // Route::options('/react-login', 'UsersController@reactLogin');
 
 Route::get('get-all-currencies', 'CurrenciesController@getAllCurrencies');
+Route::post('deposit-bittrain', 'BittrainTransactionsController@depositFromBittrain');
+Route::post('validate-bittrain-deposit', 'BittrainTransactionsController@validateBittrainDeposit');
+
+Route::get('test-email', 'TransactionsController@testEmail');
 
 Route::group([
     'prefix' => 'auth'

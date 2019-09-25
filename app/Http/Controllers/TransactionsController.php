@@ -6,8 +6,10 @@ use Illuminate\Http\Request;
 use App\Libs\CoinPaymentsAPI;
 use App\Currency;
 use App\User_deposit_address;
-use App\Coinpayments_transaction;
 use App\Transaction;
+
+// use Illuminate\Support\Facades\Mail;
+use App\Mail\BittrainCoinDeposit;
 
 class TransactionsController extends Controller
 {
@@ -114,13 +116,55 @@ class TransactionsController extends Controller
 	{
 		// $request->validate(['type' => 'required|string']);
 
-		// return response()->api('good to see you');
-		// return response()->api($request->user());
-
 		$history =  Transaction::where('user_id', $request->user()->id)
 			->with('currency:id,name,symbol')
 			->get();
 
 		return response()->api($history);
+	}
+
+	public function testEmail(Request $request)
+	{
+		/*$num1 = mt_rand(100000, 999999);
+
+		$code = sprintf("%06d", mt_rand(1, 999999));
+
+		var_dump($code);
+
+		$requestBody = 'trasnaction_id=0&code=0&amount=0';
+		parse_str($requestBody, $post);
+
+		$requestHeader['Authorization'] = 'testing';
+
+		var_dump($post);
+		return 'good to see you';*/
+
+
+		// Mail::to('email@doe.com')->send(new TestAmazonSes('It works!'));
+
+		$objDemo = new \stdClass();
+		/*$objDemo->demo_one = 'Demo One Value';
+		$objDemo->demo_two = 'Demo Two Value';
+		$objDemo->sender = 'SenderUserName';
+		$objDemo->receiver = 'ReceiverUserName';*/
+
+		$mailData = new \stdClass();
+		$mailData->demo_one = 'Demo One Value';
+		$mailData->demo_two = 'Demo Two Value';
+		$mailData->sender = 'Admin';
+		$mailData->receiver = 'Tabassum';
+		$mailData->receiver_email = 'tabassum@gmail.com';
+		$mailData->verification_code = '786786';
+
+		// Mail::to("receiver@example.com")->send(new DemoEmail($objDemo));
+		// Mail::to("receiver@example.com")->send(new BittrainCoinDeposit($objDemo));
+
+		return (new BittrainCoinDeposit($mailData))->render();
+
+		/*try {
+			Mail::to("usman.akram99@gmail.com")->send(new BittrainCoinDeposit($mailData));
+		} catch (\Exception $e) {
+			echo $e->getMessage();
+		}*/
 	}
 }

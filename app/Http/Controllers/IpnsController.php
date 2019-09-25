@@ -47,7 +47,7 @@ class IpnsController extends Controller
 			'ipn_log' => '[]'
 		]);
 
-		$transaction = Transaction::create([
+		/*$transaction = Transaction::create([
 			'user_id' => $user_id,
 			'currency_id' => $currency_id,
 			'type' => 'deposit',
@@ -59,12 +59,30 @@ class IpnsController extends Controller
 			'txn_id' => $_POST['txn_id'],
 			'status' => $_POST['status'],
 			'status_text' => $_POST['status_text']
+		]);*/
+
+		$transaction = new Transaction([
+			'user_id' => $user_id,
+			'currency_id' => $currency_id,
+			'type' => 'deposit',
+			// 'payment_gateway' => 'coinpayments',
+			// 'payment_gateway_table_id' => $coinpayments->id,
+			'address' => $_POST['address'],
+			'amount' => $_POST['amount'],
+			'confirmations' => $_POST['confirms'],
+			'txn_id' => $_POST['txn_id'],
+			'status' => $_POST['status'],
+			'status_text' => $_POST['status_text']
 		]);
 
-		return compact('coinpayments', 'transaction');
+		$coinpayments->transaction()->save($transaction);
+
+		// return compact('coinpayments', 'transaction');
+		return $coinpayments;
 	}
 	
-	private function updateCoinpayments($coinpayments, $transaction)
+	// private function updateCoinpayments($coinpayments, $transaction)
+	private function updateCoinpayments($coinpayments)
 	{
 		$coinpayments->fill([
 			'address' => $_POST['address'],
@@ -84,7 +102,16 @@ class IpnsController extends Controller
 			'status_text' => $_POST['status_text']
 		]);
 
-		$transaction->fill([
+		/*$transaction->fill([
+			'address' => $_POST['address'],
+			'amount' => $_POST['amount'],
+			'confirmations' => $_POST['confirms'],
+			'txn_id' => $_POST['txn_id'],
+			'status' => $_POST['status'],
+			'status_text' => $_POST['status_text']
+		]);*/
+
+		$coinpayments->transaction()->update([
 			'address' => $_POST['address'],
 			'amount' => $_POST['amount'],
 			'confirmations' => $_POST['confirms'],
@@ -92,6 +119,8 @@ class IpnsController extends Controller
 			'status' => $_POST['status'],
 			'status_text' => $_POST['status_text']
 		]);
+
+		// $coinpayments->transaction()->save();
 	}
 
 	private function increateUserBalance($user_id, $currency_id, $amount)
@@ -206,10 +235,11 @@ class IpnsController extends Controller
 			if ( !$coinpayments ) {
 				// Insert
 				$status = 'insert';
-				list(
+				/*list(
 					'coinpayments' => $coinpayments, 
 					'transaction' => $transaction
-				) = $this->insertCoinpayments($user_id, $currency->id);
+				) = $this->insertCoinpayments($user_id, $currency->id);*/
+				$coinpayments = $this->insertCoinpayments($user_id, $currency->id);
 
 
 				if ($_POST['status'] === '100') {
@@ -222,15 +252,16 @@ class IpnsController extends Controller
 				// Update
 				$status = 'update';
 
-				$transaction = Transaction::where([
+				/*$transaction = Transaction::where([
 					'payment_gateway' => 'coinpayments', 
 					'payment_gateway_table_id' => $coinpayments->id
 				])
 				->first();
 
 				$this->updateCoinpayments($coinpayments, $transaction);
-				$transaction->save();
+				$transaction->save();*/
 				// $coinpayments->save();
+				$this->updateCoinpayments($coinpayments);
 
 
 				// Update user balance
