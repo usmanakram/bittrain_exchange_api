@@ -20,7 +20,7 @@ class BittrainTransactionsController extends Controller
 		$requestBody = file_get_contents('php://input');
 
 		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
-		Log::channel('slack')->critical(
+		Log::channel('slack')->debug(
 			"Bittrain Deposit Request: \n" . 
 			"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
 			"*Request Header:* " . json_encode($requestHeader) . "\n" . 
@@ -155,7 +155,7 @@ class BittrainTransactionsController extends Controller
 		$requestBody = file_get_contents('php://input');
 
 		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
-		Log::channel('slack')->critical(
+		Log::channel('slack')->debug(
 			"Bittrain Deposit Verification: \n" . 
 			"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
 			"*Request Header:* " . json_encode($requestHeader) . "\n" . 
