@@ -70,7 +70,8 @@ class IpnsController extends Controller
 			'address' => $_POST['address'],
 			'amount' => $_POST['amount'],
 			'confirmations' => $_POST['confirms'],
-			'txn_id' => $_POST['txn_id'],
+			// 'txn_id' => $_POST['txn_id'],
+			'transaction_id' => $_POST['txn_id'],
 			'status' => $_POST['status'],
 			'status_text' => $_POST['status_text']
 		]);
@@ -115,22 +116,13 @@ class IpnsController extends Controller
 			'address' => $_POST['address'],
 			'amount' => $_POST['amount'],
 			'confirmations' => $_POST['confirms'],
-			'txn_id' => $_POST['txn_id'],
+			// 'txn_id' => $_POST['txn_id'],
+			'transaction_id' => $_POST['txn_id'],
 			'status' => $_POST['status'],
 			'status_text' => $_POST['status_text']
 		]);
 
 		// $coinpayments->transaction()->save();
-	}
-
-	private function increateUserBalance($user_id, $currency_id, $amount)
-	{
-		$balance = Balance::firstOrCreate(
-			['user_id' => $user_id, 'currency_id' => $currency_id],
-			['in_order_balance' => 0, 'total_balance' => 0]
-		);
-
-		return $balance->increment('total_balance', $amount);
 	}
 
 	public function coinpayments($user_id)
@@ -245,7 +237,7 @@ class IpnsController extends Controller
 				if ($_POST['status'] === '100') {
 					// Update user balance
 					$status = 'update user balance in first hit';
-					$balance = $this->increateUserBalance($user_id, $currency->id, $_POST['amount']);
+					$balance = Balance::incrementUserBalance($user_id, $currency->id, $_POST['amount']);
 				}
 
 			} elseif ($_POST['status'] === '100' && $coinpayments->status !== 100) {
@@ -266,7 +258,7 @@ class IpnsController extends Controller
 
 				// Update user balance
 				$status = 'update user balance';
-				$balance = $this->increateUserBalance($user_id, $currency->id, $_POST['amount']);
+				$balance = Balance::incrementUserBalance($user_id, $currency->id, $_POST['amount']);
 
 			} else {
 				$status = 'nothing happened';

@@ -8,6 +8,16 @@ class Currency extends Model
 {
     protected $guarded = ['id'];
 
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
+
+    public function currency_pairs()
+    {
+        return $this->hasMany(Currency_pair::class);
+    }
+
     public function user_deposit_address()
     {
     	return $this->hasMany(User_deposit_address::class);

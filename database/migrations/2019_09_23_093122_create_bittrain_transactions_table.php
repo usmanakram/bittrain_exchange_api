@@ -23,7 +23,8 @@ class CreateBittrainTransactionsTable extends Migration
             // $table->string('address', 100);
             $table->double('amount', 25, 8);
             // $table->integer('confirmations');
-            $table->string('txn_id', 100);
+            // $table->string('txn_id', 100);
+            $table->string('transaction_id', 100);
             // $table->integer('status');
             $table->text('token');
             $table->string('code', 10);

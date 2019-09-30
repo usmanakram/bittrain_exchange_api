@@ -59,13 +59,15 @@ class BittrainTransactionsController extends Controller
 				$bittrain = Bittrain_transaction::firstOrCreate(
 					[
 						'token' => $requestHeader['Authorization'],
-						'txn_id' => '',
+						// 'txn_id' => '',
+						'transaction_id' => '',
 					],
 					[
 						'currency_id' => $currency->id,
 						'type' => 'deposit',
 						'amount' => 0,
-						'txn_id' => '',
+						// 'txn_id' => '',
+						'transaction_id' => '',
 						'code' => $code,
 						'status_text' => 'Deposit request initiated'
 					]
@@ -109,16 +111,6 @@ class BittrainTransactionsController extends Controller
 		return response()->api('Request Denied', 401);
 	}
 
-	private function increateUserBalance($user_id, $currency_id, $amount)
-	{
-		$balance = Balance::firstOrCreate(
-			['user_id' => $user_id, 'currency_id' => $currency_id],
-			['in_order_balance' => 0, 'total_balance' => 0]
-		);
-
-		return $balance->increment('total_balance', $amount);
-	}
-
 	private function confirmBittrainDeposit($bittrain, $post, $user_id)
 	{
 		$address = '';
@@ -134,7 +126,8 @@ class BittrainTransactionsController extends Controller
 			'address' => $address,
 			'amount' => $post['amount'],
 			'confirmations' => $confirmations,
-			'txn_id' => $post['transaction_id'],
+			// 'txn_id' => $post['transaction_id'],
+			'transaction_id' => $post['transaction_id'],
 			'status' => $status,
 			'status_text' => $status_text
 		]);
@@ -143,7 +136,8 @@ class BittrainTransactionsController extends Controller
 
 		$bittrain->fill([
 			'amount' => $post['amount'],
-			'txn_id' => $post['transaction_id'],
+			// 'txn_id' => $post['transaction_id'],
+			'transaction_id' => $post['transaction_id'],
 		]);
 
 		$bittrain->save();
@@ -179,7 +173,7 @@ class BittrainTransactionsController extends Controller
 
 			if ($bittrain) {
 
-				if ($bittrain->txn_id === '') {
+				if ($bittrain->transaction_id === '') {
 
 					DB::beginTransaction();
 					try {
@@ -191,7 +185,7 @@ class BittrainTransactionsController extends Controller
 						$this->confirmBittrainDeposit($bittrain, $post, $user_id);
 
 						// Update user balance
-						$this->increateUserBalance($user_id, $bittrain->currency_id, $post['amount']);
+						Balance::incrementUserBalance($user_id, $bittrain->currency_id, $post['amount']);
 
 						DB::commit();
 

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Historical_price;
 use App\Latest_price;
 use App\Currency;
+use App\Currency_pair;
 
 class CurrenciesController extends Controller
 {
@@ -17,35 +18,52 @@ class CurrenciesController extends Controller
 
     public function index()
     {
-		$response = Latest_price::orderBy('id')
-					->get();
-					// ->toArray();
+		/*$response = Latest_price::orderBy('id')
+					->get();*/
+		$response = Currency_pair::with('latest_price')->whereStatus(true)->orderBy('id')->get();
 		
-		// return response()->json($response);
 		return response()->api($response);
     }
 
     public function currency($currency)
     {
-		$response = Historical_price::where([
+		/*$response = Historical_price::where([
 						'pair' => strtoupper($currency) . 'USDT', 
 						'time_interval' => '1d'
 					])
 					->orderBy('open_time', 'desc')
-					->get();
-					// ->toArray();
+					->get();*/
+		
+		$response = Currency_pair::with(['historical_prices' => function($query) {
+						$query->select('id','currency_pair_id','open','high','low','close','volume','open_time')
+							->orderBy('open_time', 'desc');
+					}])
+					/*->whereHas('base_currency', function($query) use ($currency) {
+						$query->whereSymbol($currency);
+					})
+					->whereHas('quote_currency', function($query) {
+						$query->whereSymbol('USDT');
+					})*/
+					->whereSymbol(strtoupper($currency) . 'USDT')
+					->first();
 
-		// return response()->json($response);
 		return response()->api($response);
     }
 
 	public function getAllCurrencies()
 	{
-		return response()->api( Currency::get(['name', 'symbol']) );
+		// return response()->api( Currency::get(['name', 'symbol']) );
+		return response()->api( Currency::where('symbol', '!=', 'BC')->get(['name', 'symbol']) );
+	}
+
+	private function getDollarValue($currency, $amount)
+	{
+		return Latest_price::wherePair(strtoupper($currency) . 'USDT')->first()->last_price * $amount;
 	}
 
 	public function getBalances(Request $request)
 	{
+		// return $this->getDollarValue('btc', 14);
 		$balances = Currency::with(['balances' => function($query) use ($request) {
 				$query->select('currency_id', 'total_balance', 'in_order_balance')
 					->where('user_id', $request->user()->id);

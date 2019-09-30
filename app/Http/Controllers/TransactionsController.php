@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Libs\CoinPaymentsAPI;
 use App\Currency;
 use App\User_deposit_address;
 use App\Transaction;
+use App\Balance;
 
 // use Illuminate\Support\Facades\Mail;
 use App\Mail\BittrainCoinDeposit;
@@ -59,12 +61,25 @@ class TransactionsController extends Controller
 				$query->where('symbol', strtoupper($currency));
 			})
 			->first();
+		
+		/*$address = Currency::whereSymbol(strtoupper($currency))
+			->with([
+				'user_deposit_address' => function($query) use ($user_id) {
+					$query->where('user_id', $user_id)->first();
+				}, 
+				'balances' => function($query) use ($user_id) {
+					$query->where('user_id', $user_id)->first();
+				}
+			])
+			->first();*/
 
-		$address['currency_name'] = $address->currency->name;
-		$address['currency_symbol'] = $address->currency->symbol;
-		$address['total_balance'] = $address->currency->balances[0]['total_balance'] ?? 0;
-		$address['in_order_balance'] = $address->currency->balances[0]['in_order_balance'] ?? 0;
-		// unset($address->currency);
+		if ($address) {
+			$address['currency_name'] = $address->currency->name;
+			$address['currency_symbol'] = $address->currency->symbol;
+			$address['total_balance'] = $address->currency->balances[0]['total_balance'] ?? 0;
+			$address['in_order_balance'] = $address->currency->balances[0]['in_order_balance'] ?? 0;
+			// unset($address->currency);
+		}
 
 		return $address;
 	}
@@ -73,16 +88,40 @@ class TransactionsController extends Controller
 	{
 		$user_id = $request->user()->id;
 
+		if (strtoupper($currency) === 'BC') {
+			return response()->api('Deposit address of BittrainCoin cannot be created.', 405); // 405 Method Not Allowed
+		}
+
+		$currencyDetail = Currency::where('symbol', strtoupper($currency))->first();
+
+		if ( !$currencyDetail ) {
+			return response()->api('Invalid Currency', 404); // 404 Not Found
+		}
+
+		// Create user record in "balances" table, if not exist
+		Balance::createUserBalance($user_id, $currencyDetail->id);
+		
 		$address = $this->getAddress($user_id, $currency);
 
 		// Create new address if not exist
 		if ( !$address ) {
-			
-			$currencyDetail = Currency::where('symbol', strtoupper($currency))->first();
 
 			try {
 				// generate address using CoinPaymentsAPI
 				$response = $this->generateGetCallbackAddress($user_id, $currency);
+
+				if (!isset($response['result']['address'])) {
+					// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+					Log::channel('slack')->emergency(
+						"CoinPaymentsAPI Response: \n" . 
+						"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+						"*User:* " . json_encode($request->user()) . "\n" . 
+						"*File:* " . __FILE__ . "\n" . 
+						"*API Response:* " . json_encode($response)
+					);
+
+					return response()->api('Some error occurred. Please, try again later', 400); // 400 Bad Request
+				}
 				
 				$address = new User_deposit_address([
 					'user_id' => $user_id,
@@ -97,15 +136,18 @@ class TransactionsController extends Controller
 
 			} catch (\Exception $e) {
 
+				$error_msg = "ERROR at \nLine: " . $e->getLine() . "\nFILE: " . $e->getFile() . "\nActual File: " . __FILE__ . "\nMessage: ".$e->getMessage();
+				Log::error($error_msg);
+
 				// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
 				app('log')->channel('slack')->emergency(
-					"CoinPaymentsAPI Resposponse: \n" . 
+					"CoinPaymentsAPI Response: \n" . 
 					"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
 					"*User:* " . json_encode($request->user()) . "\n" . 
-					"*Error:* " . $e->getMessage()
+					"*Error:* " . $error_msg
 				);
 
-				return response()->api('Some error occurred. Please, try again later', 400);
+				return response()->api('Some error occurred. Please, try again later', 400); // 400 Bad Request
 			}
 		}
 
