@@ -49,7 +49,7 @@ class CronsController extends Controller
 				$data = new Historical_price([
 					'currency_pair_id' => $currency_pair->id,
 					// 'pair' => $symbol,
-					'pair' => '',
+					// 'pair' => '',
 					'time_interval' => $interval,
 					'open' => $value['open'], 
 					'high' => $value['high'], 
@@ -115,7 +115,7 @@ class CronsController extends Controller
 						// ['pair' => $symbol],
 						['currency_pair_id' => $currency_pair->id],
 						[
-							'pair' => '', // to be deleted
+							// 'pair' => '', // to be deleted
 							'last_price' => $latestData['lastPrice'],
 							'volume' => $latestData['volume'],
 							'price_change_percent' => $latestData['priceChangePercent']
