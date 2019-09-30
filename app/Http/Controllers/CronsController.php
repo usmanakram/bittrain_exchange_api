@@ -159,6 +159,7 @@ class CronsController extends Controller
  
 		// $prices = \App\Latest_price::orderBy('id')->get();
 		$prices = Currency_pair::with('latest_price')->whereStatus(true)->orderBy('id')->get();
+		$prices = $prices->toArray();
 
 		event(new \App\Events\NewMessage("NewMessage from home channel: Prices have been updated"));
 		// event(new \App\Events\LiveRates("LiveRates from live channel: Prices have been updated"));
