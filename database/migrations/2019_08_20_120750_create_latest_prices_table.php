@@ -15,8 +15,8 @@ class CreateLatestPricesTable extends Migration
     {
         Schema::create('latest_prices', function (Blueprint $table) {
             $table->bigIncrements('id');
-            // $table->integer('currency_pair_id');
-            $table->string('pair');
+            $table->integer('currency_pair_id');
+            // $table->string('pair');
             $table->double('last_price', 25, 8);
             $table->double('volume', 25, 8);
             $table->float('price_change_percent');

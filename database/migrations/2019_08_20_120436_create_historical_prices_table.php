@@ -15,8 +15,8 @@ class CreateHistoricalPricesTable extends Migration
     {
         Schema::create('historical_prices', function (Blueprint $table) {
             $table->bigIncrements('id');
-            // $table->integer('currency_pair_id');
-            $table->string('pair');
+            $table->integer('currency_pair_id');
+            // $table->string('pair');
             // $table->enum('time_interval', ['1m','3m','5m','15m','30m','1h','2h','4h','6h','8h','12h','1d','3d','1w','1M']);
             $table->enum('time_interval', ['1m','3m','5m','15m','30m','1h','2h','4h','6h','8h','12h','1d','3d','1w']);
             $table->double('open', 25, 8);
