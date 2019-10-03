@@ -42,4 +42,9 @@ class Currency extends Model
     {
         return $this->hasMany(Bittrain_transaction::class);
     }
+
+    public function trade_orders()
+    {
+        return $this->hasMany(Trade_order::class, 'fee_currency_id');
+    }
 }

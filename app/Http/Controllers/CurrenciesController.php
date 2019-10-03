@@ -60,24 +60,4 @@ class CurrenciesController extends Controller
 	{
 		return Latest_price::wherePair(strtoupper($currency) . 'USDT')->first()->last_price * $amount;
 	}
-
-	public function getBalances(Request $request)
-	{
-		// return $this->getDollarValue('btc', 14);
-		$balances = Currency::with(['balances' => function($query) use ($request) {
-				$query->select('currency_id', 'total_balance', 'in_order_balance')
-					->where('user_id', $request->user()->id);
-			}])
-			->get(['id', 'name', 'symbol']);
-
-		$balances->map(function($item) {
-			$item['total_balance'] = $item['balances'][0]['total_balance'] ?? 0;
-			$item['in_order_balance'] = $item['balances'][0]['in_order_balance'] ?? 0;
-			unset($item['balances']);
-			return $item;
-		})
-		->all();
-
-		return response()->api($balances);
-	}
 }

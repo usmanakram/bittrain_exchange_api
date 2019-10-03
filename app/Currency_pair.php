@@ -39,4 +39,9 @@ class Currency_pair extends Model
     {
     	return $this->hasMany(Historical_price::class);
     }
+
+    public function trade_orders()
+    {
+    	return $this->hasMany(Trade_order::class);
+    }
 }

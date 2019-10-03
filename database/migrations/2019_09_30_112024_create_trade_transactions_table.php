@@ -17,7 +17,7 @@ class CreateTradeTransactionsTable extends Migration
             $table->bigIncrements('id');
             $table->integer('buy_order_id');
             $table->integer('sell_order_id');
-            $table->double('amount', 25, 8);
+            $table->double('quantity', 25, 8);
             $table->double('rate', 25, 8);
             $table->timestamps();
         });

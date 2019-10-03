@@ -16,12 +16,18 @@ class CreateTradeOrdersTable extends Migration
         Schema::create('trade_orders', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('user_id');
-            $table->tinyInteger('direction');
-            $table->double('amount', 25, 8);
+            $table->integer('currency_pair_id');
+            $table->tinyInteger('direction')->comment = '0=sell, 1=buy';
+            $table->double('quantity', 25, 8);
             $table->double('rate', 25, 8);
-            $table->double('trigger_rate', 25, 8);
-            $table->double('tradable_amount', 25, 8);
-            $table->tinyInteger('status');
+            $table->double('fee', 25, 8)->nullable();
+            $table->integer('fee_currency_id')->nullable();
+            $table->double('trigger_rate', 25, 8)->nullable();
+            $table->double('tradable_quantity', 25, 8);
+            // $table->enum('type', ['market', 'limit', 'stop_limit'])->default('market');
+            // $table->enum('status', ['inactive', 'active', 'partially_executed', 'executed', 'canceled'])->default('active');
+            $table->tinyInteger('type')->comment = '0=market, 1=limit, 2=stop_limit';
+            $table->tinyInteger('status')->comment = '0=inactive, 1=active, 2=partially_executed, 3=executed, 4=canceled';
             $table->timestamps();
         });
     }

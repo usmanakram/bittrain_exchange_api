@@ -28,6 +28,10 @@ Route::get('/cron-1min', 'CronsController@cron_1min');
 Route::get('/currencies', 'CurrenciesController@index');
 Route::get('/currencies/{currency}', 'CurrenciesController@currency');
 
+Route::get('/currency-pairs', 'CurrencyPairsController@index');
+
+Route::get('/order-book/{pair_id}', 'TradeOrdersController@getOrderBook');
+
 
 
 
@@ -62,6 +66,9 @@ Route::group([
         
         Route::get('get-deposit-address/{currency}', 'TransactionsController@getDepositAddress');
         Route::get('get-transactions-history', 'TransactionsController@getTransactionsHistory');
-        Route::get('get-balances', 'CurrenciesController@getBalances');
+        Route::get('get-balances', 'BalancesController@getBalances');
+        
+        Route::post('buy', 'TradeOrdersController@buy');
+        Route::post('sell', 'TradeOrdersController@sell');
     });
 });

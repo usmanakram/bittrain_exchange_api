@@ -57,4 +57,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Balance::class);
     }
+
+    public function trade_orders()
+    {
+        return $this->hasMany(Trade_order::class);
+    }
 }
