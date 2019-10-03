@@ -68,7 +68,7 @@ class TradeOrdersController extends Controller
 
 					// Broadcast OrderBook Data
 					$orderBookData = $this->getOrderBookData($request->pair_id);
-					event(new \App\Events\OrderBookUpdated( $orderBookData ));
+					event(new \App\Events\OrderBookUpdated( $orderBookData, $request->pair_id ));
 					
 					return response()->api('Buy Order Placed');
 
@@ -158,7 +158,7 @@ class TradeOrdersController extends Controller
 
 					// Broadcast OrderBook Data
 					$orderBookData = $this->getOrderBookData($request->pair_id);
-					event(new \App\Events\OrderBookUpdated( $orderBookData ));
+					event(new \App\Events\OrderBookUpdated( $orderBookData, $request->pair_id ));
 
 					return response()->api('Sell Order Placed');
 

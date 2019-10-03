@@ -15,15 +15,17 @@ class OrderBookUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $orderBookData;
+    private $currencyPairId;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($orderBookData)
+    public function __construct($orderBookData, $currencyPairId)
     {
         $this->orderBookData = $orderBookData;
+        $this->currencyPairId = $currencyPairId;
     }
 
     /**
@@ -33,6 +35,6 @@ class OrderBookUpdated implements ShouldBroadcast
      */
     public function broadcastOn()
     {
-        return new Channel('live2');
+        return new Channel('OrderBook.' . $this->currencyPairId);
     }
 }
