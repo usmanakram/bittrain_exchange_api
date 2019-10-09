@@ -56,7 +56,7 @@ class ExecuteTrade implements ShouldQueue
             sleep(5);
         }*/
         // throw new \Exception('Artificial exception');
-        $this->customLog($this->tradeOrder->toArray());
+        // $this->customLog($this->tradeOrder->toArray());
 
         // $counterOrder = Trade_order::where([
         //     'currency_pair_id' => $this->tradeOrder->currency_pair_id,

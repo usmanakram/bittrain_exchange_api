@@ -71,6 +71,8 @@ class TradeOrdersController extends Controller
 					// Broadcast OrderBook Data
 					$orderBookData = $this->getOrderBookData($request->pair_id);
 					event(new \App\Events\OrderBookUpdated( $orderBookData, $request->pair_id ));
+
+					// Trigger event to add trade in queue for trade execution
 					event(new \App\Events\TradeOrderPlaced( $order ));
 					
 					return response()->api('Buy Order Placed');
@@ -162,6 +164,8 @@ class TradeOrdersController extends Controller
 					// Broadcast OrderBook Data
 					$orderBookData = $this->getOrderBookData($request->pair_id);
 					event(new \App\Events\OrderBookUpdated( $orderBookData, $request->pair_id ));
+
+					// Trigger event to add trade in queue for trade execution
 					event(new \App\Events\TradeOrderPlaced( $order ));
 
 					return response()->api('Sell Order Placed');
