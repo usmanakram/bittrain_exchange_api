@@ -33,6 +33,9 @@ Route::get('/currency-pairs', 'CurrencyPairsController@index');
 Route::get('/order-book/{pair_id}', 'TradeOrdersController@getOrderBook');
 
 
+Route::get('/trade-engine-testing/{tradeOrder}', 'TradeOrdersController@tradeEngineTesting');
+
+
 
 
 Route::get('/test-get-apiendpoint', 'UsersController@testApiEndpoint');

@@ -59,7 +59,26 @@ class Balance extends Model
     public static function incrementUserBalance($user_id, $currency_id, $amount)
     {
         $balance = self::getUserBalance($user_id, $currency_id);
-
         return $balance->increment('total_balance', $amount);
+    }
+
+    public static function decrementUserBalance($user_id, $currency_id, $amount)
+    {
+        $balance = self::getUserBalance($user_id, $currency_id);
+        return $balance->decrement('total_balance', $amount);
+    }
+
+    public static function incrementUserBalanceAndInOrderBalance($user_id, $currency_id, $amount)
+    {
+        $balance = self::getUserBalance($user_id, $currency_id);
+        $balance->increment('total_balance', $amount);
+        $balance->increment('in_order_balance', $amount);
+    }
+
+    public static function decrementUserBalanceAndInOrderBalance($user_id, $currency_id, $amount)
+    {
+        $balance = self::getUserBalance($user_id, $currency_id);
+        $balance->decrement('total_balance', $amount);
+        $balance->decrement('in_order_balance', $amount);
     }
 }
