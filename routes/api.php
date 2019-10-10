@@ -31,6 +31,7 @@ Route::get('/currencies/{currency}', 'CurrenciesController@currency');
 Route::get('/currency-pairs', 'CurrencyPairsController@index');
 
 Route::get('/order-book/{pair_id}', 'TradeOrdersController@getOrderBook');
+Route::get('/trade-history/{pair_id}', 'TradeTransactionsController@getTradeTransactions');
 
 
 Route::get('/trade-engine-testing/{tradeOrder}', 'TradeOrdersController@tradeEngineTesting');
@@ -73,5 +74,9 @@ Route::group([
         
         Route::post('buy', 'TradeOrdersController@buy');
         Route::post('sell', 'TradeOrdersController@sell');
+
+        Route::post('/user-trades', 'TradeOrdersController@getUserTrades');
+        Route::post('/user-orders', 'TradeOrdersController@getUserOrders');
+        Route::post('/user-open-orders', 'TradeOrdersController@getUserOpenOrders');
     });
 });

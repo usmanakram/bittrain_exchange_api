@@ -269,6 +269,45 @@ class TradeOrdersController extends Controller
     	// return response()->api(compact('buyOrders', 'sellOrders'));
     }
 
+    public function getUserTrades(Request $request)
+    {
+		/*
+		page: 1
+		rows: 16
+		start: 1569870000000
+		end: 1570561200000
+		baseAsset: ADA
+		quoteAsset: BNB
+		symbol: 
+		direction: BUY
+		*/
+		$trades = Trade_order::where([
+				'user_id' => $request->user()->id,
+				'status' => 3
+			])
+			->with('currency_pair:id,symbol')
+			->get()
+			->makeVisible('created_at')
+			->makeHidden(['user_id', 'trigger_rate', 'tradable_quantity', 'type', 'status']);
+
+		$trades->map(function($item) {
+			$item['pair_symbol'] = $item->currency_pair->symbol;
+			unset($item->currency_pair);
+		});
+
+		return response()->api($trades);
+    }
+
+    public function getUserOrders(Request $request)
+    {
+    	# code...
+    }
+
+    public function getUserOpenOrders(Request $request)
+    {
+    	# code...
+    }
+
     public function tradeEngineTesting(Trade_order $tradeOrder)
     {
 		$counterOrder = Trade_order::where([

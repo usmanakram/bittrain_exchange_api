@@ -18,7 +18,7 @@ class Trade_transaction extends Model
     	'sell_order_id' => 'integer',
     ];
 
-    /*public function buy_order()
+    public function buy_order()
     {
     	return $this->belongsTo(Trade_order::class, 'buy_order_id');
     }
@@ -26,5 +26,5 @@ class Trade_transaction extends Model
     public function sell_order()
     {
     	return $this->belongsTo(Trade_order::class, 'sell_order_id');
-    }*/
+    }
 }

@@ -187,12 +187,17 @@ class ExecuteTrade implements ShouldQueue
             }
 
 
+            /**
+             * Pending Task:
+             * Broadcast data only if user is logged in. 
+             * It will save processing and decrease network traffic
+             */
+
             // Broadcast a message to user for transaction performed
             $message = ($tradeOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($tradeOrder->status === 2 ? 'Partially' : '') . ' Filled';
             event(new \App\Events\TradeOrderFilled( $message, $tradeOrder->user_id ));
             if ($tradeOrder->user_id !== $counterOrder->user_id) {
                 $message = ($counterOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($counterOrder->status === 2 ? 'Partially' : '') . ' Filled';
-                // $message = ($counterOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order Filled';
                 event(new \App\Events\TradeOrderFilled( $message, $counterOrder->user_id ));
             }
             

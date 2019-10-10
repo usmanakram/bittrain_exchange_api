@@ -36,8 +36,13 @@ class Trade_order extends Model
     	return $this->belongsTo(Currency::class, 'fee_currency_id');
     }
 
-    /*public function trade_transactions()
+    public function buy_trade_transactions()
     {
-    	return $this->hasMany(Trade_transaction::class);
-    }*/
+    	return $this->hasMany(Trade_transaction::class, 'buy_order_id');
+    }
+
+    public function sell_trade_transactions()
+    {
+    	return $this->hasMany(Trade_transaction::class, 'sell_order_id');
+    }
 }
