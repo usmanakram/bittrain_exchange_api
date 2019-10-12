@@ -15,7 +15,8 @@ class TradeTransactionsController extends Controller
 			})
 			->orderBy('id', 'desc')
 			->limit(3)
-			->get();
+			->get()
+			->makeVisible('created_at');
 
 		$transactions->map(function($item, $key) {
 			$item['currency_pair_id'] = $item->buy_order->currency_pair_id;
