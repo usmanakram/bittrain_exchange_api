@@ -158,11 +158,25 @@ class TransactionsController extends Controller
 	{
 		// $request->validate(['type' => 'required|string']);
 
-		$history =  Transaction::where('user_id', $request->user()->id)
-			->with('currency:id,name,symbol')
-			->get();
+		$deposits =  Transaction::with('currency:id,name,symbol')
+			->where([
+				'user_id' => $request->user()->id,
+				'type' => 'deposit',
+			])
+			->latest()
+			->get()
+			->makeVisible('created_at');
 
-		return response()->api($history);
+		$withdrawals =  Transaction::with('currency:id,name,symbol')
+			->where([
+				'user_id' => $request->user()->id,
+				'type' => 'withdrawal',
+			])
+			->latest()
+			->get()
+			->makeVisible('created_at');
+
+		return response()->api(compact('deposits', 'withdrawals'));
 	}
 
 	public function testEmail(Request $request)

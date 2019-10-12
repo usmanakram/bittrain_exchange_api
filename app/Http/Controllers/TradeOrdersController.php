@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use App\Currency_pair;
 use App\Latest_price;
 use App\Trade_order;
+use App\Trade_transaction;
 use App\Balance;
 
 class TradeOrdersController extends Controller
@@ -34,11 +35,17 @@ class TradeOrdersController extends Controller
 				$query->whereUserId($user_id);
 			}])->find($request->pair_id);
 
-			$fee = ($request->quantity * $request->price) * ($this->fee / 100);
+			/*$fee = ($request->quantity * $request->price) * ($this->fee / 100);
 			// $fee = $request->quantity * ($this->fee / 100); // need adjustment
 
-			$requiredBalance = ($request->quantity * $request->price) + $fee;
+			$requiredBalance = ($request->quantity * $request->price) + $fee;*/
+			$requiredBalance = $request->quantity * $request->price;
 
+			/**
+			 * Warning: It might possible that there is not record in balances against these currencies for current user
+			 * So, we should create records in balances against these (base, quote) currencies for current user
+			 * 
+			 */
 			$userBalance = $balance->quote_currency->balances[0];
 			$availableBalance = $userBalance->total_balance - $userBalance->in_order_balance;
 
@@ -50,8 +57,8 @@ class TradeOrdersController extends Controller
 					'direction' => 1,
 					'quantity' => $request->quantity,
 					'rate' => $request->price,
-					'fee' => $fee,
-					'fee_currency_id' => $balance->base_currency_id,
+					// 'fee' => $fee,
+					// 'fee_currency_id' => $balance->base_currency_id,
 					// 'trigger_rate' => NULL,
 					'tradable_quantity' => $request->quantity,
 					'type' => 1,
@@ -126,10 +133,16 @@ class TradeOrdersController extends Controller
 			}])->find($request->pair_id);
 
 
-			$fee = ($request->quantity * $request->price) * ($this->fee / 100);
+			// $fee = ($request->quantity * $request->price) * ($this->fee / 100);
 			// $requiredBalance = ($request->quantity * $request->price) + $fee;
 			
 			// $userBalance = $balance->quote_currency->balances[0];
+
+			/**
+			 * Warning: It might possible that there is not record in balances against these currencies for current user
+			 * So, we should create records in balances against these (base, quote) currencies for current user
+			 * 
+			 */
 			$userBalance = $balance->base_currency->balances[0];
 			$availableBalance = $userBalance->total_balance - $userBalance->in_order_balance;
 
@@ -142,8 +155,8 @@ class TradeOrdersController extends Controller
 					'direction' => 0,
 					'quantity' => $request->quantity,
 					'rate' => $request->price,
-					'fee' => $fee,
-					'fee_currency_id' => $balance->quote_currency_id,
+					// 'fee' => $fee,
+					// 'fee_currency_id' => $balance->quote_currency_id,
 					// 'trigger_rate' => NULL,
 					'tradable_quantity' => $request->quantity,
 					'type' => 1,
@@ -205,13 +218,13 @@ class TradeOrdersController extends Controller
     		'currency_pair_id' => $pair_id,
     		'direction' => 1, // buy orders
     		'type' => 1, // limit orders
-    		// 'status' => 1, // available for trade
+    		'status' => 1, // available for trade
     	];
 
     	DB::statement("SET sql_mode = '' ");
 
     	$buyOrders = Trade_order::where($where)
-    		->whereIn('status', [1, 2])
+    		// ->whereIn('status', [1, 2])
     		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity'))
     		->groupBy('rate')
     		->orderBy('rate', 'desc')
@@ -220,7 +233,7 @@ class TradeOrdersController extends Controller
     	
     	$where['direction'] = 0;
     	$sellOrders = Trade_order::where($where)
-    		->whereIn('status', [1, 2])
+    		// ->whereIn('status', [1, 2])
     		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity'))
     		->groupBy('rate')
     		->orderBy('rate', 'asc')
@@ -281,18 +294,53 @@ class TradeOrdersController extends Controller
 		symbol: 
 		direction: BUY
 		*/
-		$trades = Trade_order::where([
+		/*$trades = Trade_order::where([
 				'user_id' => $request->user()->id,
-				'status' => 3
+				'status' => 2
 			])
-			->with('currency_pair:id,symbol')
+			->with('currency_pair:id,symbol', 'buy_trade_transactions', 'sell_trade_transactions')
+			->orderBy('updated_at', 'desc')
 			->get()
 			->makeVisible('created_at')
-			->makeHidden(['user_id', 'trigger_rate', 'tradable_quantity', 'type', 'status']);
+			->makeHidden(['user_id', 'trigger_rate', 'tradable_quantity', 'type', 'status']);*/
+
+		// $trades->map(function($item) {
+		// 	$item['currency_pair_symbol'] = $item->currency_pair->symbol;
+		// 	unset($item->currency_pair);
+		// });
+
+		$user_id = $request->user()->id;
+
+		$trades = Trade_transaction::with([
+				'buy_order' => function($query) use ($user_id) {
+					$query->with('currency_pair:id,symbol')
+						->select('id', 'currency_pair_id', 'direction')
+						->whereUserId($user_id);
+				}, 
+				'sell_order' => function($query) use ($user_id) {
+					$query->with('currency_pair:id,symbol')
+						->select('id', 'currency_pair_id', 'direction')
+						->whereUserId($user_id);
+				}, 
+			])
+			->whereHas('buy_order', function($query) use ($user_id) {
+				$query->whereUserId($user_id);
+			})
+			->orwhereHas('sell_order', function($query) use ($user_id) {
+				$query->whereUserId($user_id);
+			})
+			->orderBy('id', 'desc')
+			->get()
+			->makeVisible('created_at');
 
 		$trades->map(function($item) {
-			$item['pair_symbol'] = $item->currency_pair->symbol;
-			unset($item->currency_pair);
+			$targetProp = $item->buy_order ? 'buy_order' : 'sell_order';
+
+			$item['currency_pair_id'] = $item[$targetProp]->currency_pair_id;
+			$item['currency_pair_symbol'] = $item[$targetProp]->currency_pair->symbol;
+
+			unset($item['buy_order']);
+			unset($item['sell_order']);
 		});
 
 		return response()->api($trades);
@@ -300,12 +348,44 @@ class TradeOrdersController extends Controller
 
     public function getUserOrders(Request $request)
     {
-    	# code...
+    	$user_id = $request->user()->id;
+
+    	$orders = Trade_order::where([
+    			'user_id' => $user_id,
+    			// 'status' => 1
+    		])
+    		->with('currency_pair:id,symbol')
+    		->latest()
+    		->get()
+    		->makeVisible('created_at');
+
+  //   	$orders->map(function($item) {
+		// 	$item['currency_pair_symbol'] = $item->currency_pair->symbol;
+		// 	unset($item->currency_pair);
+		// });
+
+		return response()->api($orders);
     }
 
     public function getUserOpenOrders(Request $request)
     {
-    	# code...
+    	$user_id = $request->user()->id;
+
+    	$orders = Trade_order::where([
+    			'user_id' => $user_id,
+    			'status' => 1
+    		])
+    		->with('currency_pair:id,symbol')
+    		->latest()
+    		->get()
+    		->makeVisible('created_at');
+
+    	$orders->map(function($item) {
+			$item['currency_pair_symbol'] = $item->currency_pair->symbol;
+			unset($item->currency_pair);
+		});
+
+		return response()->api($orders);
     }
 
     public function tradeEngineTesting(Trade_order $tradeOrder)

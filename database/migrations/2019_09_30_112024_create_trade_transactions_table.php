@@ -19,6 +19,8 @@ class CreateTradeTransactionsTable extends Migration
             $table->integer('sell_order_id');
             $table->double('quantity', 25, 8);
             $table->double('rate', 25, 8);
+            $table->double('buy_fee', 25, 8)->nullable();
+            $table->double('sell_fee', 25, 8)->nullable();
             $table->timestamps();
         });
     }

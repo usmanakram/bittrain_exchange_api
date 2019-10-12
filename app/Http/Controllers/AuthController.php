@@ -36,7 +36,7 @@ class AuthController extends Controller
     {
         /*$credentials = [
             'bit_uname' => 'tabassumali21',
-            'bit_password' => '!Scitilop!1'
+            'bit_password' => '!Scitilop!1a'
         ];*/
 
         $endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
