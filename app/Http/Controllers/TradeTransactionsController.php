@@ -31,4 +31,17 @@ class TradeTransactionsController extends Controller
 		$transactions = $this->getTradeTransactionsData($pair_id);
 		return response()->api($transactions);
 	}
+
+	public function getTradeHistoryForChart(Request $request)
+	{
+		// Form validation
+
+		// Response sample
+		/*[
+			{ time: '2019-10-11', open: '', high: '', low: '', close: ''},
+			{ time: '2019-10-10', open: '', high: '', low: '', close: ''},
+			{ time: '2019-10-09', open: '', high: '', low: '', close: ''},
+			{ time: '2019-10-08', open: '', high: '', low: '', close: ''},
+		]*/
+	}
 }
