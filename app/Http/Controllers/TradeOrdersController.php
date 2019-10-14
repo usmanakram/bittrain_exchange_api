@@ -336,6 +336,7 @@ class TradeOrdersController extends Controller
 		$trades->map(function($item) {
 			$targetProp = $item->buy_order ? 'buy_order' : 'sell_order';
 
+			$item['direction'] = $item[$targetProp]->direction;
 			$item['currency_pair_id'] = $item[$targetProp]->currency_pair_id;
 			$item['currency_pair_symbol'] = $item[$targetProp]->currency_pair->symbol;
 
