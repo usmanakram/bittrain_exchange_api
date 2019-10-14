@@ -14,7 +14,7 @@ class TradeTransactionsController extends Controller
 				$query->whereCurrencyPairId($pair_id);
 			})
 			->orderBy('id', 'desc')
-			->limit(3)
+			->limit(25)
 			->get()
 			->makeVisible('created_at');
 
