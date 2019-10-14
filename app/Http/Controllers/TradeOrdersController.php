@@ -360,10 +360,10 @@ class TradeOrdersController extends Controller
     		->get()
     		->makeVisible('created_at');
 
-  //   	$orders->map(function($item) {
-		// 	$item['currency_pair_symbol'] = $item->currency_pair->symbol;
-		// 	unset($item->currency_pair);
-		// });
+    	$orders->map(function($item) {
+			$item['currency_pair_symbol'] = $item->currency_pair->symbol;
+			unset($item->currency_pair);
+		});
 
 		return response()->api($orders);
     }
