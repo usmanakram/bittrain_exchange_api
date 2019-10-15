@@ -14,7 +14,7 @@ use App\Balance;
 class TradeOrdersController extends Controller
 {
 	private $fee = 0; // Percentage
-	private $orderBookEntries = 10;
+	private $orderBookEntries = 100;
 
     public function buy(Request $request)
     {
@@ -252,34 +252,9 @@ class TradeOrdersController extends Controller
     		return response()->api('Invalid URL', 404);
     	}
 
-    	/*$where = [
-    		'currency_pair_id' => $pair_id,
-    		'direction' => 1, // buy orders
-    		'type' => 1, // limit orders
-    		'status' => 1, // available for trade
-    	];
-
-    	DB::statement("SET sql_mode = '' ");
-
-    	$buyOrders = Trade_order::where($where)
-    		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity'))
-    		->groupBy('rate')
-    		->orderBy('rate', 'desc')
-    		->limit($this->orderBookEntries)
-    		->get();
-    	
-    	$where['direction'] = 0;
-    	$sellOrders = Trade_order::where($where)
-    		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity'))
-    		->groupBy('rate')
-    		->orderBy('rate', 'desc')
-    		->limit($this->orderBookEntries)
-    		->get();*/
-
     	$orderBookData = $this->getOrderBookData($pair_id);
     	
     	return response()->api($orderBookData);
-    	// return response()->api(compact('buyOrders', 'sellOrders'));
     }
 
     public function getUserTrades(Request $request)
@@ -313,12 +288,16 @@ class TradeOrdersController extends Controller
 
 		$trades = Trade_transaction::with([
 				'buy_order' => function($query) use ($user_id) {
-					$query->with('currency_pair:id,symbol')
+					$query
+						// ->with('currency_pair:id,symbol')
+						->with('currency_pair.base_currency:id,symbol')
 						->select('id', 'currency_pair_id', 'direction')
 						->whereUserId($user_id);
 				}, 
 				'sell_order' => function($query) use ($user_id) {
-					$query->with('currency_pair:id,symbol')
+					$query
+						// ->with('currency_pair:id,symbol')
+						->with('currency_pair.base_currency:id,symbol')
 						->select('id', 'currency_pair_id', 'direction')
 						->whereUserId($user_id);
 				}, 
@@ -335,10 +314,12 @@ class TradeOrdersController extends Controller
 
 		$trades->map(function($item) {
 			$targetProp = $item->buy_order ? 'buy_order' : 'sell_order';
+			// $item['fee'] = $item->buy_order ? $item->buy_fee : $item->sell_fee;
 
 			$item['direction'] = $item[$targetProp]->direction;
 			$item['currency_pair_id'] = $item[$targetProp]->currency_pair_id;
 			$item['currency_pair_symbol'] = $item[$targetProp]->currency_pair->symbol;
+			$item['base_currency_symbol'] = $item[$targetProp]->currency_pair->base_currency->symbol;
 
 			unset($item['buy_order']);
 			unset($item['sell_order']);
