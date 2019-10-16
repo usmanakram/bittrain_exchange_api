@@ -233,7 +233,7 @@ class TradeOrdersController extends Controller
 
     	$buyOrders = Trade_order::where($where)
     		// ->whereIn('status', [1, 2])
-    		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity'))
+    		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity, rate * SUM(tradable_quantity) AS total'))
     		->groupBy('rate')
     		->orderBy('rate', 'desc')
     		->limit($this->orderBookEntries)
@@ -242,7 +242,7 @@ class TradeOrdersController extends Controller
     	$where['direction'] = 0;
     	$sellOrders = Trade_order::where($where)
     		// ->whereIn('status', [1, 2])
-    		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity'))
+    		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity, rate * SUM(tradable_quantity) AS total'))
     		->groupBy('rate')
     		->orderBy('rate', 'asc')
     		->limit($this->orderBookEntries)
@@ -277,20 +277,7 @@ class TradeOrdersController extends Controller
 		symbol: 
 		direction: BUY
 		*/
-		/*$trades = Trade_order::where([
-				'user_id' => $request->user()->id,
-				'status' => 2
-			])
-			->with('currency_pair:id,symbol', 'buy_trade_transactions', 'sell_trade_transactions')
-			->orderBy('updated_at', 'desc')
-			->get()
-			->makeVisible('created_at')
-			->makeHidden(['user_id', 'trigger_rate', 'tradable_quantity', 'type', 'status']);*/
 
-		// $trades->map(function($item) {
-		// 	$item['currency_pair_symbol'] = $item->currency_pair->symbol;
-		// 	unset($item->currency_pair);
-		// });
 
 		$user_id = $request->user()->id;
 
@@ -317,6 +304,93 @@ class TradeOrdersController extends Controller
 				$query->whereUserId($user_id);
 			})
 			->orderBy('id', 'desc')
+			->get()
+			->makeVisible('created_at');
+
+		$trades->map(function($item) {
+			$targetProp = $item->buy_order ? 'buy_order' : 'sell_order';
+			// $item['fee'] = $item->buy_order ? $item->buy_fee : $item->sell_fee;
+
+			$item['direction'] = $item[$targetProp]->direction;
+			$item['currency_pair_id'] = $item[$targetProp]->currency_pair_id;
+			$item['currency_pair_symbol'] = $item[$targetProp]->currency_pair->symbol;
+			$item['base_currency_symbol'] = $item[$targetProp]->currency_pair->base_currency->symbol;
+
+			unset($item['buy_order']);
+			unset($item['sell_order']);
+		});
+
+		return response()->api($trades);
+    }
+
+    public function getUserTradesWorkingInProgress(Request $request)
+    {
+		/*
+		page: 1
+		rows: 16
+		start: 1569870000000
+		end: 1570561200000
+		baseAsset: ADA
+		quoteAsset: BNB
+		symbol: 
+		direction: BUY
+		*/
+
+		$user_id = $request->user()->id;
+
+
+		$start = $request->start;
+		$end = $request->end;
+		$pair_id = $request->pair_id;
+		$direction = $request->direction;
+
+		$withArray = [
+			'buy_order' => function($query) use ($user_id) {
+				$query
+					// ->with('currency_pair:id,symbol')
+					->with('currency_pair.base_currency:id,symbol')
+					->select('id', 'currency_pair_id', 'direction')
+					->whereUserId($user_id);
+			}, 
+			'sell_order' => function($query) use ($user_id) {
+				$query
+					// ->with('currency_pair:id,symbol')
+					->with('currency_pair.base_currency:id,symbol')
+					->select('id', 'currency_pair_id', 'direction')
+					->whereUserId($user_id);
+			}, 
+		];
+
+		if ($direction === '0') {
+			unset($withArray['buy_order']);
+		} elseif ($direction === '1') {
+			unset($withArray['sell_order']);
+		}
+		
+
+
+
+		$trades = Trade_transaction::with($withArray);
+
+		if ($direction === '1') {
+			$trades = $trades->whereHas('buy_order', function($query) use ($user_id) {
+				$query->whereUserId($user_id);
+			});
+		} elseif ($direction === '0') {
+			$trades = $trades->whereHas('sell_order', function($query) use ($user_id) {
+				$query->whereUserId($user_id);
+			});
+		} else {
+			$trades = $trades
+				->whereHas('buy_order', function($query) use ($user_id) {
+					$query->whereUserId($user_id);
+				})
+				->orwhereHas('sell_order', function($query) use ($user_id) {
+					$query->whereUserId($user_id);
+				});
+		}
+
+		$trades = $trades->orderBy('id', 'desc')
 			->get()
 			->makeVisible('created_at');
 
