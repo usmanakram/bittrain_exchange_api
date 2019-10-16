@@ -30,6 +30,8 @@ Route::get('/currencies/{currency}', 'CurrenciesController@currency');
 
 Route::get('/currency-pairs', 'CurrencyPairsController@index');
 
+Route::get('/latest-prices', 'CurrencyPairsController@latestPrices');
+
 Route::get('/order-book/{pair_id}', 'TradeOrdersController@getOrderBook');
 Route::get('/trade-history/{pair_id}', 'TradeTransactionsController@getTradeTransactions');
 Route::get('/chart-trade-history/{pair_id}', 'TradeTransactionsController@getTradeHistoryForChart');

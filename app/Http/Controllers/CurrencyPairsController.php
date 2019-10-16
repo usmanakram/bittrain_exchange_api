@@ -26,4 +26,15 @@ class CurrencyPairsController extends Controller
 		
 		return response()->api($currency_pairs);
     }
+
+    public function latestPricesData()
+    {
+        return Currency_pair::with('latest_price')->whereStatus(true)->orderBy('id')->get()->all();
+    }
+
+    public function latestPrices()
+    {
+        $prices = $this->latestPricesData();
+        return response()->api($prices);
+    }
 }

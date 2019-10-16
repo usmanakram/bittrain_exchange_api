@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Log;
 use App\Trade_order;
 use App\Trade_transaction;
 use App\Balance;
+use App\Latest_price;
 use Exception;
 
 class ExecuteTrade implements ShouldQueue
@@ -174,6 +175,12 @@ class ExecuteTrade implements ShouldQueue
                 $this->updateBalances($tradeOrder, $currencyPairDetail, $tradable_quantity, $buy_fee, $sell_fee);
                 $this->updateBalances($counterOrder, $currencyPairDetail, $tradable_quantity, $buy_fee, $sell_fee);
 
+                // Update "latest_prices" table with latest price & volume
+                $latest_price = Latest_price::whereCurrencyPairId($tradeOrder->currency_pair_id)->update([
+                    'last_price' => $tradeOrder->rate,
+                    'volume' => DB::raw('volume + ' . ($tradable_quantity * $tradeOrder->rate))
+                ]);
+
                 DB::commit();
 
             } catch (\Exception $e) {
@@ -209,6 +216,14 @@ class ExecuteTrade implements ShouldQueue
                 $message = ($counterOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($counterOrder->tradable_quantity > 0 ? 'Partially' : '') . ' Filled';
                 event(new \App\Events\TradeOrderFilled( $message, $counterOrder->user_id ));
             }
+
+            // Broadcast updated User's OpenOrders
+            $openOrdersData = (new \App\Http\Controllers\TradeOrdersController)->getUserOpenOrdersData($tradeOrder->user_id);
+            event(new \App\Events\OpenOrdersUpdated( $openOrdersData, $tradeOrder->user_id ));
+
+            // Broadcast updated User's OpenOrders
+            $openOrdersData = (new \App\Http\Controllers\TradeOrdersController)->getUserOpenOrdersData($counterOrder->user_id);
+            event(new \App\Events\OpenOrdersUpdated( $openOrdersData, $counterOrder->user_id ));
             
             // Broadcast updated Order Book
             $orderBookData = (new \App\Http\Controllers\TradeOrdersController)->getOrderBookData($tradeOrder->currency_pair_id);
@@ -221,6 +236,10 @@ class ExecuteTrade implements ShouldQueue
             // Broadcast CandleStick chart History
             $candleChartData = (new \App\Http\Controllers\TradeTransactionsController)->getTradeHistoryForChartData($tradeOrder->currency_pair_id);
             event(new \App\Events\CandleStickGraphUpdated( $candleChartData, $tradeOrder->currency_pair_id ));
+
+            // Broadcast latest prices
+            $prices = (new \App\Http\Controllers\CurrencyPairsController)->latestPricesData();
+            event(new \App\Events\LiveRates( $prices ));
 
             if ($objForNextCall) {
                 $this->runTradingEngine($objForNextCall);
