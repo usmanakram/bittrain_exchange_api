@@ -75,12 +75,16 @@ class TradeOrdersController extends Controller
 				if ($order && $update) {
 					DB::commit();
 
+					// Trigger event to add trade in queue for trade execution
+					event(new \App\Events\TradeOrderPlaced( $order ));
+
 					// Broadcast OrderBook Data
 					$orderBookData = $this->getOrderBookData($request->pair_id);
 					event(new \App\Events\OrderBookUpdated( $orderBookData, $request->pair_id ));
 
-					// Trigger event to add trade in queue for trade execution
-					event(new \App\Events\TradeOrderPlaced( $order ));
+					// Broadcast User OpenOrders
+					$openOrdersData = $this->getUserOpenOrdersData($user_id);
+					event(new \App\Events\OpenOrdersUpdated( $openOrdersData, $user_id ));
 					
 					return response()->api('Buy Order Placed');
 
@@ -174,12 +178,16 @@ class TradeOrdersController extends Controller
 				if ($order && $update) {
 					DB::commit();
 
+					// Trigger event to add trade in queue for trade execution
+					event(new \App\Events\TradeOrderPlaced( $order ));
+
 					// Broadcast OrderBook Data
 					$orderBookData = $this->getOrderBookData($request->pair_id);
 					event(new \App\Events\OrderBookUpdated( $orderBookData, $request->pair_id ));
 
-					// Trigger event to add trade in queue for trade execution
-					event(new \App\Events\TradeOrderPlaced( $order ));
+					// Broadcast User OpenOrders
+					$openOrdersData = $this->getUserOpenOrdersData($user_id);
+					event(new \App\Events\OpenOrdersUpdated( $openOrdersData, $user_id ));
 
 					return response()->api('Sell Order Placed');
 
@@ -349,10 +357,8 @@ class TradeOrdersController extends Controller
 		return response()->api($orders);
     }
 
-    public function getUserOpenOrders(Request $request)
+    public function getUserOpenOrdersData($user_id)
     {
-    	$user_id = $request->user()->id;
-
     	$orders = Trade_order::where([
     			'user_id' => $user_id,
     			'status' => 1
@@ -367,6 +373,16 @@ class TradeOrdersController extends Controller
 			unset($item->currency_pair);
 		});
 
+		/**
+		 * ->all() is required if we need data (returned by this method) in some other method.
+		 * If we skip ->all(), data fetched from other tables is skipped and "created_at" fields is also skipped
+		 */
+		return $orders->all();
+    }
+
+    public function getUserOpenOrders(Request $request)
+    {
+    	$orders = $this->getUserOpenOrdersData($request->user()->id);
 		return response()->api($orders);
     }
 

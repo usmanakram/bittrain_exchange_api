@@ -32,7 +32,7 @@ Route::get('/currency-pairs', 'CurrencyPairsController@index');
 
 Route::get('/order-book/{pair_id}', 'TradeOrdersController@getOrderBook');
 Route::get('/trade-history/{pair_id}', 'TradeTransactionsController@getTradeTransactions');
-Route::post('/chart-trade-history/{pair_id}', 'TradeTransactionsController@getTradeHistoryForChart');
+Route::get('/chart-trade-history/{pair_id}', 'TradeTransactionsController@getTradeHistoryForChart');
 
 
 Route::get('/trade-engine-testing/{tradeOrder}', 'TradeOrdersController@tradeEngineTesting');

@@ -214,6 +214,14 @@ class ExecuteTrade implements ShouldQueue
             $orderBookData = (new \App\Http\Controllers\TradeOrdersController)->getOrderBookData($tradeOrder->currency_pair_id);
             event(new \App\Events\OrderBookUpdated( $orderBookData, $tradeOrder->currency_pair_id ));
 
+            // Broadcast updated Trade History
+            $tradeHistory = (new \App\Http\Controllers\TradeTransactionsController)->getTradeTransactionsData($tradeOrder->currency_pair_id);
+            event(new \App\Events\TradeHistoryUpdated( $tradeHistory, $tradeOrder->currency_pair_id ));
+
+            // Broadcast CandleStick chart History
+            $candleChartData = (new \App\Http\Controllers\TradeTransactionsController)->getTradeHistoryForChartData($tradeOrder->currency_pair_id);
+            event(new \App\Events\CandleStickGraphUpdated( $candleChartData, $tradeOrder->currency_pair_id ));
+
             if ($objForNextCall) {
                 $this->runTradingEngine($objForNextCall);
             }
