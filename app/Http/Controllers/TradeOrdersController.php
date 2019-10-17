@@ -265,20 +265,8 @@ class TradeOrdersController extends Controller
     	return response()->api($orderBookData);
     }
 
-    public function getUserTrades(Request $request)
+    public function getUserTradesBackup(Request $request)
     {
-		/*
-		page: 1
-		rows: 16
-		start: 1569870000000
-		end: 1570561200000
-		baseAsset: ADA
-		quoteAsset: BNB
-		symbol: 
-		direction: BUY
-		*/
-
-
 		$user_id = $request->user()->id;
 
 		$trades = Trade_transaction::with([
@@ -323,7 +311,7 @@ class TradeOrdersController extends Controller
 		return response()->api($trades);
     }
 
-    public function getUserTradesWorkingInProgress(Request $request)
+    public function getUserTrades(Request $request)
     {
 		/*
 		page: 1
@@ -336,11 +324,17 @@ class TradeOrdersController extends Controller
 		direction: BUY
 		*/
 
+		$maxHistoryPeriod = strtotime('-3 months');
+
 		$user_id = $request->user()->id;
 
 
-		$start = $request->start;
-		$end = $request->end;
+		$start = strtotime($request->start);
+		$start = $start > $maxHistoryPeriod ? $start : $maxHistoryPeriod;
+
+		$start = date('Y-m-d', $start);
+		$end = date('Y-m-d', strtotime($request->end));
+
 		$pair_id = $request->pair_id;
 		$direction = $request->direction;
 
@@ -366,36 +360,49 @@ class TradeOrdersController extends Controller
 		} elseif ($direction === '1') {
 			unset($withArray['sell_order']);
 		}
-		
-
-
 
 		$trades = Trade_transaction::with($withArray);
 
 		if ($direction === '1') {
-			$trades = $trades->whereHas('buy_order', function($query) use ($user_id) {
-				$query->whereUserId($user_id);
+			$trades = $trades->whereHas('buy_order', function($query) use ($user_id, $pair_id) {
+				$query->where(['user_id' => $user_id, 'currency_pair_id' => $pair_id]);
 			});
 		} elseif ($direction === '0') {
-			$trades = $trades->whereHas('sell_order', function($query) use ($user_id) {
-				$query->whereUserId($user_id);
+			$trades = $trades->whereHas('sell_order', function($query) use ($user_id, $pair_id) {
+				$query->where(['user_id' => $user_id, 'currency_pair_id' => $pair_id]);
 			});
 		} else {
-			$trades = $trades
+			/*$trades = $trades
 				->whereHas('buy_order', function($query) use ($user_id) {
 					$query->whereUserId($user_id);
 				})
 				->orwhereHas('sell_order', function($query) use ($user_id) {
 					$query->whereUserId($user_id);
+				});*/
+
+			$trades = $trades->where(function($query) use ($user_id, $pair_id) {
+				$query->whereHas('buy_order', function($query) use ($user_id, $pair_id) {
+					$query->where(['user_id' => $user_id, 'currency_pair_id' => $pair_id]);
+				})
+				->orwhereHas('sell_order', function($query) use ($user_id, $pair_id) {
+					$query->where(['user_id' => $user_id, 'currency_pair_id' => $pair_id]);
 				});
+			});
+		}
+
+		if ($start && $end) {
+			// $trades = $trades->whereBetween('created_at', [date($start), date($end)]);
+			$trades = $trades->whereRaw('DATE(created_at) BETWEEN ? AND ?', [$start, $end]);
 		}
 
 		$trades = $trades->orderBy('id', 'desc')
 			->get()
 			->makeVisible('created_at');
+			// ->toSql();
 
-		$trades->map(function($item) {
-			$targetProp = $item->buy_order ? 'buy_order' : 'sell_order';
+		$trades->map(function($item) use ($user_id) {
+			// $targetProp = $item->buy_order ? 'buy_order' : 'sell_order';
+			$targetProp = $item->buy_order->user_id === $user_id ? 'buy_order' : 'sell_order';
 			// $item['fee'] = $item->buy_order ? $item->buy_fee : $item->sell_fee;
 
 			$item['direction'] = $item[$targetProp]->direction;
@@ -412,7 +419,47 @@ class TradeOrdersController extends Controller
 
     public function getUserOrders(Request $request)
     {
-    	$user_id = $request->user()->id;
+    	$maxHistoryPeriod = strtotime('-3 months');
+
+		$user_id = $request->user()->id;
+
+		$start = strtotime($request->start);
+		$start = $start > $maxHistoryPeriod ? $start : $maxHistoryPeriod;
+
+		$start = date('Y-m-d', $start);
+		$end = date('Y-m-d', strtotime($request->end));
+
+		$pair_id = $request->pair_id;
+		$direction = $request->direction;
+
+		$where = ['user_id' => $user_id];
+
+		if ($pair_id) {
+			$where['currency_pair_id'] = $pair_id;
+		}
+		if ( in_array($direction, ['0', '1']) ) {
+			$where['direction'] = $direction;
+		}
+
+		$orders = Trade_order::where($where);
+		
+		if ($start && $end) {
+			$orders = $orders->whereRaw('DATE(created_at) BETWEEN ? AND ?', [$start, $end]);
+		}
+
+		$orders = $orders
+			->with('currency_pair:id,symbol')
+			->latest()
+			->get()
+			->makeVisible('created_at');
+
+		$orders->map(function($item) {
+			$item['currency_pair_symbol'] = $item->currency_pair->symbol;
+			unset($item->currency_pair);
+		});
+
+
+    	/*$user_id = $request->user()->id;
 
     	$orders = Trade_order::where([
     			'user_id' => $user_id,
@@ -426,7 +473,7 @@ class TradeOrdersController extends Controller
     	$orders->map(function($item) {
 			$item['currency_pair_symbol'] = $item->currency_pair->symbol;
 			unset($item->currency_pair);
-		});
+		});*/
 
 		return response()->api($orders);
     }
