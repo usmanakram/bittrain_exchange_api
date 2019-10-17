@@ -46,6 +46,7 @@ Route::get('/test-get-apiendpoint', 'UsersController@testApiEndpoint');
 Route::post('/test-post-apiendpoint', 'UsersController@testApiEndpoint');
 
 Route::post('/coinpayments-ipn/{user_id}', 'IpnsController@coinpayments');
+Route::post('/coinpayments-withdrawal-ipn', 'IpnsController@coinpaymentsWithdrawal');
 
 /*Route::get('/login', 'UsersController@login');
 Route::get('/test-curl', 'UsersController@testCurl');
@@ -73,6 +74,7 @@ Route::group([
         
         Route::get('get-deposit-address/{currency}', 'TransactionsController@getDepositAddress');
         Route::get('get-transactions-history', 'TransactionsController@getTransactionsHistory');
+        Route::post('withdraw', 'TransactionsController@requestToWithdraw');
         Route::get('get-balances', 'BalancesController@getBalances');
         
         Route::post('buy', 'TradeOrdersController@buy');

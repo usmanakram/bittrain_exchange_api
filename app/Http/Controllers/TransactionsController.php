@@ -179,6 +179,44 @@ class TransactionsController extends Controller
 		return response()->api(compact('deposits', 'withdrawals'));
 	}
 
+	public function requestToWithdraw(Request $request)
+	{
+		echo 'reached';
+
+
+
+
+
+		/*$private_key = config('app.COINPAYMENTS_API_PRIVATE_KEY');
+		$public_key = config('app.COINPAYMENTS_API_PUBLIC_KEY');*/
+
+		$private_key = env('COINPAYMENTS_API_PRIVATE_KEY');
+		$public_key = env('COINPAYMENTS_API_PUBLIC_KEY');
+
+    	if (!$private_key || !$public_key) {
+			throw new \Exception('Kindly, put Coinpayments private and public keys in .env file.');
+		}
+
+		$cps = new CoinPaymentsAPI();
+		$cps->Setup($private_key, $public_key);
+
+		/*// $currency = 'BTC';
+		// $ipn_url = 'http://18.220.217.218/coinpayments/ipn.php';
+		// $label = '1st testing address';
+		$ipn_url = 'http://18.220.217.218/bittrain_exchange_api/public/api/coinpayments-ipn/' . $user_id;
+		$label = $user_id;
+
+		return $cps->GetCallbackAddress($currency, $ipn_url, $label);*/
+
+		$amount = 0.0006;
+		$currency = 'BTC';
+		$address = '39ny9XXWzmwaBvXNfV2NAogUbZU2unkBN2';
+		$auto_confirm = false;
+		$ipn_url = 'http://18.220.217.218/bittrain_exchange_api/public/api/coinpayments-withdrawal-ipn';
+
+		return $cps->CreateWithdrawal($amount, $currency, $address, $auto_confirm, $ipn_url);
+	}
+
 	public function testEmail(Request $request)
 	{
 		/*$num1 = mt_rand(100000, 999999);

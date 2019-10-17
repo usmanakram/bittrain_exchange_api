@@ -144,11 +144,11 @@ class IpnsController extends Controller
 			return response()->api('Some error occurred. Please, try again later', 400);
 		}
 
-		/*if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
+		if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
 			$this->slackFakeIpnAlert('No HMAC signature sent');
 
 			die("No HMAC signature sent");
-		}*/
+		}
 
 		$merchant = isset($_POST['merchant']) ? $_POST['merchant']:'';
 		if (empty($merchant)) {
@@ -170,12 +170,12 @@ class IpnsController extends Controller
 			die("Error reading POST data");
 		}
 
-		/*$hmac = hash_hmac("sha512", $request, $secret);
+		$hmac = hash_hmac("sha512", $request, $secret);
 		if ($hmac != $_SERVER['HTTP_HMAC']) {
 			$this->slackFakeIpnAlert('HMAC signature does not match');
 			
 			die("HMAC signature does not match");
-		}*/
+		}
 
 		//process IPN here
 
@@ -302,5 +302,65 @@ class IpnsController extends Controller
 
 			return response()->api('Some error occurred. Please, try again later', 400);
 		}
+    }
+
+    public function coinpaymentsWithdrawal()
+    {
+    	$merchant_id = env('COINPAYMENTS_MERCHANT_ID');
+		$secret = env('COINPAYMENTS_SECRET');
+
+		if (!$merchant_id || !$secret) {
+			// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+			Log::channel('slack')->warning(
+				"Coinpayments IPN: \n" . 
+				"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+				"*Data:* " . json_encode($_POST) . "\n" . 
+				"*Error:* Kindly, put Coinpayments Merchant ID and Secret in .env file");
+
+			return response()->api('Some error occurred. Please, try again later', 400);
+		}
+
+		if (!isset($_SERVER['HTTP_HMAC']) || empty($_SERVER['HTTP_HMAC'])) {
+			$this->slackFakeIpnAlert('No HMAC signature sent');
+
+			die("No HMAC signature sent");
+		}
+
+		$merchant = isset($_POST['merchant']) ? $_POST['merchant']:'';
+		if (empty($merchant)) {
+			$this->slackFakeIpnAlert('No Merchant ID passed');
+
+			die("No Merchant ID passed");
+		}
+
+		if ($merchant != $merchant_id) {
+			$this->slackFakeIpnAlert('Invalid Merchant ID');
+
+			die("Invalid Merchant ID");
+		}
+
+		$request = file_get_contents('php://input');
+		if ($request === FALSE || empty($request)) {
+			$this->slackFakeIpnAlert('Error reading POST data');
+
+			die("Error reading POST data");
+		}
+
+		$hmac = hash_hmac("sha512", $request, $secret);
+		if ($hmac != $_SERVER['HTTP_HMAC']) {
+			$this->slackFakeIpnAlert('HMAC signature does not match');
+			
+			die("HMAC signature does not match");
+		}
+
+		//process IPN here
+
+		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+		Log::channel('slack')->debug(
+			"Coinpayments IPN: \n" . 
+			"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+			"*Data:* " . json_encode($_POST) . "\n" . 
+			"*Status:* After authentication, Before handling IPN"
+		);
     }
 }
