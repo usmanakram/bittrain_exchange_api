@@ -400,9 +400,10 @@ class TradeOrdersController extends Controller
 			->makeVisible('created_at');
 			// ->toSql();
 
-		$trades->map(function($item) use ($user_id) {
+		$trades->map(function($item) use ($user_id, $direction) {
 			// $targetProp = $item->buy_order ? 'buy_order' : 'sell_order';
-			$targetProp = $item->buy_order->user_id === $user_id ? 'buy_order' : 'sell_order';
+			$targetProp = $direction === '0' ? 'sell_order' : ($direction === '1' ? 'buy_order' : ($item->buy_order ? 'buy_order' : 'sell_order'));
+			// $targetProp = $item->buy_order->user_id === $user_id ? 'buy_order' : 'sell_order';
 			// $item['fee'] = $item->buy_order ? $item->buy_fee : $item->sell_fee;
 
 			$item['direction'] = $item[$targetProp]->direction;
