@@ -79,6 +79,7 @@ Route::group([
         
         Route::post('buy', 'TradeOrdersController@buy');
         Route::post('sell', 'TradeOrdersController@sell');
+        Route::get('cancel-order/{order}', 'TradeOrdersController@cancelOrder');
 
         Route::post('/user-trades', 'TradeOrdersController@getUserTrades');
         Route::post('/user-orders', 'TradeOrdersController@getUserOrders');

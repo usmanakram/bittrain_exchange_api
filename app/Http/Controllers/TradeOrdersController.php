@@ -220,6 +220,44 @@ class TradeOrdersController extends Controller
 
     }
 
+    public function cancelOrder(Request $request, Trade_order $order)
+    {
+    	$user_id = $request->user()->id;
+
+    	if ( $user_id !== $order->user_id || in_array($order->status, [2, 3]) ) {
+    		return response()->api('Resource Not Found', 404); // Not Found
+    	}
+
+		DB::beginTransaction();
+		try {
+			
+			// Update order status as canceled
+			$order->status = 3;
+			$order->save();
+
+
+			if ($order->direction === 0) {
+				$decrement = $order->tradable_quantity;
+				$currency_id = $order->currency_pair->base_currency_id;
+			} else {
+				$decrement = $order->tradable_quantity * $order->rate;
+				$currency_id = $order->currency_pair->quote_currency_id;
+			}
+
+			// Release user's in order balance
+			$balance = Balance::getUserBalance($user_id, $currency_id);
+			$balance->decrement('in_order_balance', $decrement);
+
+			DB::commit();
+
+		} catch (\Exception $e) {
+			DB::rollBack();
+			return response()->api('Some error occurred. Please, try again later', 400); // 400 Bad Request
+		}
+
+		return response()->api('Order canceled successfully.');
+    }
+
     public function getOrderBookData($pair_id)
     {
     	$where = [
