@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Libs\CoinPaymentsAPI;
 use App\Currency;
 use App\User_deposit_address;
 use App\Transaction;
 use App\Balance;
+use App\Coinpayments_transaction;
 
 // use Illuminate\Support\Facades\Mail;
 use App\Mail\BittrainCoinDeposit;
@@ -179,13 +181,60 @@ class TransactionsController extends Controller
 		return response()->api(compact('deposits', 'withdrawals'));
 	}
 
-	public function requestToWithdraw(Request $request)
+	private function insertCoinpaymentsWithdrawal($user_id, $address, $amount, $currency_id)
 	{
-		echo 'reached';
+		$coinpayments = Coinpayments_transaction::create([
+			'deposit_id' => '', 
+			'txn_id' => '',
+			'address' => $address,
+			'amount' => $amount,
+			'confirms' => 0,
+			'currency_id' => $currency_id,
+			'fee' => 0,
+			'fiat_amount' => 0,
+			'fiat_coin' => '',
+			'fiat_fee' => 0,
+			'ipn_id' => '',
+			'ipn_mode' => '',
+			'ipn_type' => '',
+			'ipn_version' => '',
+			'label' => 0,
+			'merchant' => '',
+			'status' => 0,
+			'status_text' => '',
+			'ipn_log' => '[]'
+		]);
 
+		$transaction = new Transaction([
+			'user_id' => $user_id,
+			'currency_id' => $currency_id,
+			'type' => 'withdrawal',
+			'address' => $address,
+			'amount' => $amount,
+			'confirmations' => 0,
+			'transaction_id' => '',
+			'status' => 0,
+			'status_text' => ''
+		]);
 
+		$coinpayments->transaction()->save($transaction);
 
+		return $coinpayments;
+	}
 
+	private function initiateCreateWithdrawal($quantity, $currency, $address)
+	{
+		/*
+		Response from CoinPayments
+		{
+			"error": "ok",
+			"result": {
+				"id": "CWDJ7SVPS9SQYZ3HQ6JFR18GKJ",
+				"status": 0,
+				"amount": "0.00060000"
+			}
+		}
+		*/
 
 		/*$private_key = config('app.COINPAYMENTS_API_PRIVATE_KEY');
 		$public_key = config('app.COINPAYMENTS_API_PUBLIC_KEY');*/
@@ -193,28 +242,108 @@ class TransactionsController extends Controller
 		$private_key = env('COINPAYMENTS_API_PRIVATE_KEY');
 		$public_key = env('COINPAYMENTS_API_PUBLIC_KEY');
 
-    	if (!$private_key || !$public_key) {
+		if (!$private_key || !$public_key) {
 			throw new \Exception('Kindly, put Coinpayments private and public keys in .env file.');
 		}
 
 		$cps = new CoinPaymentsAPI();
 		$cps->Setup($private_key, $public_key);
 
-		/*// $currency = 'BTC';
-		// $ipn_url = 'http://18.220.217.218/coinpayments/ipn.php';
-		// $label = '1st testing address';
-		$ipn_url = 'http://18.220.217.218/bittrain_exchange_api/public/api/coinpayments-ipn/' . $user_id;
-		$label = $user_id;
-
-		return $cps->GetCallbackAddress($currency, $ipn_url, $label);*/
-
-		$amount = 0.0006;
-		$currency = 'BTC';
-		$address = '39ny9XXWzmwaBvXNfV2NAogUbZU2unkBN2';
+		// $amount = 0.0006;
+		// $currency = 'BTC';
+		// $address = '39ny9XXWzmwaBvXNfV2NAogUbZU2unkBN2'; // Ladger Nono S
+		// $address = '1MnX7LYJpFMY6r7wMdgw6PF2sRUHVhig1h'; // MyCelium
 		$auto_confirm = false;
 		$ipn_url = 'http://18.220.217.218/bittrain_exchange_api/public/api/coinpayments-withdrawal-ipn';
 
-		return $cps->CreateWithdrawal($amount, $currency, $address, $auto_confirm, $ipn_url);
+		return $cps->CreateWithdrawal($quantity, $currency, $address, $auto_confirm, $ipn_url);
+	}
+
+	public function requestToWithdraw(Request $request)
+	{
+		$request->validate([
+			'address' => 'required|string',
+			'quantity' => 'required'
+		]);
+
+		$user_id = $request->user()->id;
+
+		$currency = 'BTC';
+
+		$quantity = (float) $request->quantity;
+		$address = $request->address;
+
+
+		$currencyDetail = Currency::where('symbol', strtoupper($currency))->first();
+
+		if ( !$currencyDetail ) {
+			return response()->api('Invalid Currency', 404); // 404 Not Found
+		}
+
+		$balance = Balance::getUserBalance($user_id, $currencyDetail->id);
+
+		// Check available balance
+		if ($quantity > ($balance->total_balance - $balance->in_order_balance)) {
+
+			return response()->api('Insufficient balance!', 405); // 405 Method Not Allowed
+
+		} else {
+
+			DB::beginTransaction();
+
+			try {
+				$coinpayments = $this->insertCoinpaymentsWithdrawal($user_id, $address, $quantity, $currencyDetail->id);
+
+				// Decrease User Balance
+				Balance::decrementUserBalance($user_id, $currencyDetail->id, $quantity);
+				
+				// Initiate withdrawal request using CoinPaymentsAPI
+				$response = $this->initiateCreateWithdrawal($quantity, $currency, $address);
+
+				if (!isset($response['result']['id'])) {
+					// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+					Log::channel('slack')->emergency(
+						"CoinPaymentsAPI Withdrawal Request: \n" . 
+						"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+						"*User:* " . json_encode($request->user()) . "\n" . 
+						"*File:* " . __FILE__ . "\n" . 
+						"*API Response:* " . json_encode($response)
+					);
+
+					if ($response['error'] === 'That is not a valid address for that coin!') {
+						$error_msg = 'Provided address is not a valid address for ' . $currency . '!';
+					} else {
+						$error_msg = 'Some error occurred. Please, try again later';
+					}
+
+					return response()->api($error_msg, 400); // 400 Bad Request
+				}
+
+				// Update CoinPayments Transaction according to response
+				$coinpayments->deposit_id = $response['result']['id'];
+				$coinpayments->save();
+
+				DB::commit();
+
+				return response()->api('Withdrawal request initiated successfully');
+
+			} catch (\Exception $e) {
+				DB::rollBack();
+
+				$error_msg = "ERROR at \nLine: " . $e->getLine() . "\nFILE: " . $e->getFile() . "\nActual File: " . __FILE__ . "\nMessage: ".$e->getMessage();
+				Log::error($error_msg);
+
+				// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+				app('log')->channel('slack')->emergency(
+					"CoinPaymentsAPI Withdrawal Request: \n" . 
+					"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+					"*User:* " . json_encode($request->user()) . "\n" . 
+					"*Error:* " . $error_msg
+				);
+
+				return response()->api('Some error occurred. Please, try again later', 400); // 400 Bad Request
+			}
+		}
 	}
 
 	public function testEmail(Request $request)

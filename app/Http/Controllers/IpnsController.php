@@ -304,8 +304,61 @@ class IpnsController extends Controller
 		}
     }
 
+    private function updateCoinpaymentsWithdrawal($coinpayments)
+	{
+		$coinpayments->fill([
+			// 'address' => $_POST['address'],
+			// 'amount' => $_POST['amount'],
+			// 'confirms' => $_POST['confirms'],
+			// 'fee' => (isset($_POST['fee']) ? $_POST['fee'] : 0),
+			// 'fiat_amount' => $_POST['fiat_amount'],
+			// 'fiat_coin' => $_POST['fiat_coin'],
+			// 'fiat_fee' => (isset($_POST['fiat_fee']) ? $_POST['fiat_fee'] : 0),
+			'ipn_id' => $_POST['ipn_id'],
+			'ipn_mode' => $_POST['ipn_mode'],
+			'ipn_type' => $_POST['ipn_type'],
+			'ipn_version' => $_POST['ipn_version'],
+			// 'label' => $_POST['label'],
+			'merchant' => $_POST['merchant'],
+			'status' => $_POST['status'],
+			'status_text' => $_POST['status_text'],
+			'txn_id' => $_POST['txn_id']
+		]);
+
+		$coinpayments->transaction()->update([
+			// 'address' => $_POST['address'],
+			// 'amount' => $_POST['amount'],
+			// 'confirmations' => $_POST['confirms'],
+			// 'txn_id' => $_POST['txn_id'],
+			'transaction_id' => $_POST['txn_id'],
+			'status' => $_POST['status'],
+			'status_text' => $_POST['status_text']
+		]);
+
+		// $coinpayments->transaction()->save();
+	}
+
     public function coinpaymentsWithdrawal()
     {
+    	// Data received from Coinpayments at successfull withdrawal
+    	/*
+		{
+			"address": "1MnX7LYJpFMY6r7wMdgw6PF2sRUHVhig1h",
+			"amount": "0.00060000",
+			"amounti": "60000",
+			"currency": "BTC",
+			"id": "CWDJ7SVPS9SQYZ3HQ6JFR18GKJ",
+			"ipn_id": "fbe21dbd339175368ac9831460c2d2d3",
+			"ipn_mode": "hmac",
+			"ipn_type": "withdrawal",
+			"ipn_version": "1.0",
+			"merchant": "03ee91231f2384dc580c7fb1d8584c86",
+			"status": "2",
+			"status_text": "Complete",
+			"txn_id": "fed2dd56bac300bb12af8fba9621c226d55a74375d626a190295dfdf080a9b2d"
+		}
+		*/
+
     	$merchant_id = env('COINPAYMENTS_MERCHANT_ID');
 		$secret = env('COINPAYMENTS_SECRET');
 
@@ -362,5 +415,58 @@ class IpnsController extends Controller
 			"*Data:* " . json_encode($_POST) . "\n" . 
 			"*Status:* After authentication, Before handling IPN"
 		);
+
+		DB::beginTransaction();
+
+		try {
+			
+			$coinpayments = Coinpayments_transaction::where(['deposit_id' => $_POST['id']])->first();
+
+			$status = 'Withdrawal request not found';
+			if ( $coinpayments ) {
+				if ($_POST['status'] === '2') {
+					$status = 'updated';
+					$this->updateCoinpaymentsWithdrawal($coinpayments);
+				} else {
+					$status = 'nothing happened';
+				}
+
+				$ipn_log = json_decode($coinpayments->ipn_log);
+				$ipn_log[] = $_POST;
+				$ipn_log = json_encode($ipn_log);
+
+				$coinpayments->fill(['ipn_log' => $ipn_log]);
+
+				$coinpayments->save();
+
+				DB::commit();
+			}
+			
+		} catch (\Exception $e) {
+			DB::rollBack();
+			
+			$error_msg = "ERROR at \nLine: " . $e->getLine() . "\nFILE: " . $e->getFile() . "\nActual File: " . __FILE__ . "\nMessage: ".$e->getMessage();
+			Log::error($error_msg);
+
+			// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+			Log::channel('slack')->critical(
+				"Coinpayments Withdrawal IPN: \n" . 
+				"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+				"*Data:* " . json_encode($_POST) . "\n" . 
+				"*Error:* " . $error_msg
+			);
+
+			return response()->api('Some error occurred. Please, try again later', 400);
+		}
+
+		// Slack Log (emergency, alert, critical, error, warning, notice, info and debug)
+		Log::channel('slack')->debug(
+			"Coinpayments Withdrawal IPN: \n" . 
+			"*Host:* " . $_SERVER['HTTP_HOST'] . "\n" . 
+			"*Data:* " . json_encode($_POST) . "\n" . 
+			"*Status:* " . $status
+		);
+
+		return response()->api('', 204);
     }
 }
