@@ -130,10 +130,46 @@ class ExecuteTrade implements ShouldQueue
         fclose($file);
     }
 
-    private function runTradingEngine(Trade_order $tradeOrder)
+    private function getCounterOrder(Trade_order $tradeOrder)
     {
         // Get oldest placed counter order
         $counterOrder = Trade_order::where([
+            'currency_pair_id' => $tradeOrder->currency_pair_id,
+            'direction' => ($tradeOrder->direction === 0 ? 1 : 0),
+            // 'rate' => $tradeOrder->rate,
+            'status' => 1,
+        ]);
+
+        if ($tradeOrder->type === 0) {
+            /**
+             * FOR INSTANT/MARKET TRADE
+             * Fetch counter order if exist at the same amount. Otherwise, 
+             *      lowest rate counter order for buy trade
+             *      highest rate counter order for sell trade
+             * 
+             */
+            if ($tradeOrder->direction === 0) {
+                $counterOrder = $counterOrder->where('rate', '<=', $tradeOrder->rate)->orderBy('rate', 'desc');
+            } else {
+                $counterOrder = $counterOrder->where('rate', '>=', $tradeOrder->rate)->orderBy('rate', 'asc');
+            }
+            
+        } else {
+            $counterOrder = $counterOrder->where('rate', $tradeOrder->rate);
+        }
+
+        return $counterOrder
+            ->whereIn('type', [0, 1])
+            ->where('tradable_quantity', '>', 0)
+            ->oldest()
+            ->limit(1)
+            ->first();
+    }
+
+    private function runTradingEngine(Trade_order $tradeOrder)
+    {
+        // Get oldest placed counter order
+        /*$counterOrder = Trade_order::where([
             'currency_pair_id' => $tradeOrder->currency_pair_id,
             'direction' => ($tradeOrder->direction === 0 ? 1 : 0),
             'rate' => $tradeOrder->rate,
@@ -150,9 +186,28 @@ class ExecuteTrade implements ShouldQueue
         ->limit(1)
         // ->get()
         ->first()
-        ;
+        ;*/
+        $counterOrder = $this->getCounterOrder($tradeOrder);
 
         if ($counterOrder) {
+            
+            // START
+            /*$rate = $tradeOrder->rate;
+            $tradable_quantity = $tradeOrder->quantity;
+
+            if ($tradeOrder->type === 0 && $tradeOrder->direction === 1 && $counterOrder->rate > $tradeOrder->rate) {
+                $rate = $counterOrder->rate;
+
+                $requiredAdditionalBalance = $tradeOrder->quantity * ($rate - $tradeOrder->rate);
+                $balance = Balance::getUserBalance($tradeOrder->user_id, $tradeOrder->quote_currency_id);
+
+                $availableBalance = $balance->total_balance - $balance->in_order_balance;
+                if ($availableBalance < $requiredAdditionalBalance) {
+                    $tradable_quantity = $availableBalance / $rate;
+                }
+            }*/
+            // END
+            
             if ($counterOrder->tradable_quantity <= $tradeOrder->tradable_quantity) {
                 $tradable_quantity = $counterOrder->tradable_quantity;
                 

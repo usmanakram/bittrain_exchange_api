@@ -16,6 +16,7 @@ class Trade_order extends Model
     protected $casts = [
     	'user_id' => 'integer',
     	'currency_pair_id' => 'integer',
+        'direction' => 'integer',
     	// 'fee_currency_id' => 'integer',
     	'type' => 'integer',
     	'status' => 'integer',

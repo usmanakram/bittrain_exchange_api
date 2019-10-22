@@ -20,6 +20,7 @@ class TradeOrdersController extends Controller
     {
     	$request->validate([
             'pair_id' => 'required',
+            'type' => 'required',
             'price' => 'required',
             'quantity' => 'required',
         ]);
@@ -42,7 +43,7 @@ class TradeOrdersController extends Controller
 			$requiredBalance = $request->quantity * $request->price;
 
 			/**
-			 * Warning: It might possible that there is not record in balances against these currencies for current user
+			 * Warning: It might possible that there will be no record in balances against these currencies for current user
 			 * So, we should create records in balances against these (base, quote) currencies for current user
 			 * 
 			 */
@@ -61,7 +62,7 @@ class TradeOrdersController extends Controller
 					// 'fee_currency_id' => $balance->base_currency_id,
 					// 'trigger_rate' => NULL,
 					'tradable_quantity' => $request->quantity,
-					'type' => 1,
+					'type' => $request->type,
 					'status' => 1,
 				]);
 
@@ -121,6 +122,7 @@ class TradeOrdersController extends Controller
     {
     	$request->validate([
             'pair_id' => 'required',
+            'type' => 'required',
             'price' => 'required',
             'quantity' => 'required',
         ]);
@@ -143,7 +145,7 @@ class TradeOrdersController extends Controller
 			// $userBalance = $balance->quote_currency->balances[0];
 
 			/**
-			 * Warning: It might possible that there is not record in balances against these currencies for current user
+			 * Warning: It might possible that there will be no record in balances against these currencies for current user
 			 * So, we should create records in balances against these (base, quote) currencies for current user
 			 * 
 			 */
@@ -163,7 +165,7 @@ class TradeOrdersController extends Controller
 					// 'fee_currency_id' => $balance->quote_currency_id,
 					// 'trigger_rate' => NULL,
 					'tradable_quantity' => $request->quantity,
-					'type' => 1,
+					'type' => $request->type,
 					'status' => 1,
 				]);
 
@@ -546,8 +548,51 @@ class TradeOrdersController extends Controller
 		return response()->api($orders);
     }
 
+
+    private function getCounterOrder(Trade_order $tradeOrder, $instant = false)
+    {
+        // Get oldest placed counter order
+        $counterOrder = Trade_order::where([
+            'currency_pair_id' => $tradeOrder->currency_pair_id,
+            'direction' => ($tradeOrder->direction === 0 ? 1 : 0),
+            // 'rate' => $tradeOrder->rate,
+            'status' => 1,
+        ]);
+
+        if ($tradeOrder->type === 0) {
+        	/**
+        	 * Title: For Instant/Market Trade
+        	 * Description:
+        	 * Fetch counter order if exist at the same amount. Otherwise, 
+        	 * 		lowest rate counter order for buy trade
+        	 * 		highest rate counter order for sell trade
+        	 * 
+        	 */
+            if ($tradeOrder->direction === 0) {
+            	$counterOrder = $counterOrder->where('rate', '<=', $tradeOrder->rate)->orderBy('rate', 'desc');
+            } else {
+            	$counterOrder = $counterOrder->where('rate', '>=', $tradeOrder->rate)->orderBy('rate', 'asc');
+            }
+            
+        } else {
+            $counterOrder = $counterOrder->where('rate', $tradeOrder->rate);
+        }
+
+        return $counterOrder
+            ->whereIn('type', [0, 1])
+            ->where('tradable_quantity', '>', 0)
+            ->oldest()
+            ->limit(1)
+            ->first();
+    }
+
     public function tradeEngineTesting(Trade_order $tradeOrder)
     {
+    	echo '<pre>';
+    	print_r($this->getCounterOrder($tradeOrder)->toArray());
+    	echo '</pre>';
+    	die;
+
 		$counterOrder = Trade_order::where([
 			'currency_pair_id' => $tradeOrder->currency_pair_id,
 			'direction' => ($tradeOrder->direction === 0 ? 1 : 0),
