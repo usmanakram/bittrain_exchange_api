@@ -91,6 +91,35 @@ class ExecuteTrade implements ShouldQueue
         );
     }
 
+    private function updateTradeOrder($order, $tradable_quantity)
+    {
+        if ($order->tradable_quantity <= $tradable_quantity) {
+            $order->tradable_quantity = 0;
+            $order->status = 2;
+            $order->save();
+        } else {
+            $order->decrement('tradable_quantity', $tradable_quantity);
+        }
+    }
+
+    private function updateBalances($order, $currencyPairDetail, $tradable_quantity, $buy_fee, $sell_fee)
+    {
+        if ($order->direction === 1) { // buy
+            // Increase buying(base) currency balance
+            Balance::incrementUserBalance($order->user_id, $currencyPairDetail->base_currency_id, ($tradable_quantity - $buy_fee));
+
+            // Decrease selling(quote) currency balances ("total_balance", "in_order_balance")
+            Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $order->rate));
+        
+        } elseif ($order->direction === 0) { // sell
+            // Increase buying(quote) currency balance
+            Balance::incrementUserBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $order->rate - $sell_fee));
+
+            // Decrease selling(base) currency balances ("total_balance", "in_order_balance")
+            Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $currencyPairDetail->base_currency_id, $tradable_quantity);
+        }
+    }
+
     /**
      * Only for testing
      * 
@@ -209,11 +238,11 @@ class ExecuteTrade implements ShouldQueue
 
             // Broadcast a message to user for transaction performed
             // $message = ($tradeOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($tradeOrder->status === 2 ? 'Partially' : '') . ' Filled';
-            $message = ($tradeOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($tradeOrder->tradable_quantity > 0 ? 'Partially' : '') . ' Filled';
+            $message = ($tradeOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($tradeOrder->tradable_quantity > 0 ? 'Partially ' : '') . 'Filled';
             event(new \App\Events\TradeOrderFilled( $message, $tradeOrder->user_id ));
             if ($tradeOrder->user_id !== $counterOrder->user_id) {
                 // $message = ($counterOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($counterOrder->status === 2 ? 'Partially' : '') . ' Filled';
-                $message = ($counterOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($counterOrder->tradable_quantity > 0 ? 'Partially' : '') . ' Filled';
+                $message = ($counterOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($counterOrder->tradable_quantity > 0 ? 'Partially ' : '') . 'Filled';
                 event(new \App\Events\TradeOrderFilled( $message, $counterOrder->user_id ));
             }
 
@@ -248,34 +277,5 @@ class ExecuteTrade implements ShouldQueue
 
         // return $tradeOrder;
         // return $counterOrder;
-    }
-
-    private function updateTradeOrder($order, $tradable_quantity)
-    {
-        if ($order->tradable_quantity <= $tradable_quantity) {
-            $order->tradable_quantity = 0;
-            $order->status = 2;
-            $order->save();
-        } else {
-            $order->decrement('tradable_quantity', $tradable_quantity);
-        }
-    }
-
-    private function updateBalances($order, $currencyPairDetail, $tradable_quantity, $buy_fee, $sell_fee)
-    {
-        if ($order->direction === 1) { // buy
-            // Increase buying(base) currency balance
-            Balance::incrementUserBalance($order->user_id, $currencyPairDetail->base_currency_id, ($tradable_quantity - $buy_fee));
-
-            // Decrease selling(quote) currency balances ("total_balance", "in_order_balance")
-            Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $order->rate));
-        
-        } elseif ($order->direction === 0) { // sell
-            // Increase buying(quote) currency balance
-            Balance::incrementUserBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $order->rate - $sell_fee));
-
-            // Decrease selling(base) currency balances ("total_balance", "in_order_balance")
-            Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $currencyPairDetail->base_currency_id, $tradable_quantity);
-        }
-    }
+    }    
 }
