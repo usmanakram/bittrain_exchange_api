@@ -24,7 +24,7 @@ class TradeTransactionsController extends Controller
 			unset($item->buy_order);
 		});
 
-	    return $transactions;
+	    return $transactions->all();
 	}
 
 	public function getTradeTransactions($pair_id)
