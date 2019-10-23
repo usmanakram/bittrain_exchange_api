@@ -569,9 +569,11 @@ class TradeOrdersController extends Controller
         	 * 
         	 */
             if ($tradeOrder->direction === 0) {
-            	$counterOrder = $counterOrder->where('rate', '<=', $tradeOrder->rate)->orderBy('rate', 'desc');
+            	// $counterOrder = $counterOrder->where('rate', '<=', $tradeOrder->rate)->orderBy('rate', 'desc');
+            	$counterOrder = $counterOrder->orderBy('rate', 'desc');
             } else {
-            	$counterOrder = $counterOrder->where('rate', '>=', $tradeOrder->rate)->orderBy('rate', 'asc');
+            	// $counterOrder = $counterOrder->where('rate', '>=', $tradeOrder->rate)->orderBy('rate', 'asc');
+            	$counterOrder = $counterOrder->orderBy('rate', 'asc');
             }
             
         } else {
