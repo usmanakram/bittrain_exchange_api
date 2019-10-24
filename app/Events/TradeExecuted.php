@@ -9,30 +9,22 @@ use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use App\Trade_order;
 
-class OrderBookUpdated implements ShouldBroadcast
+class TradeExecuted
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public $orderBookData;
-    private $currencyPairId;
-
-    /**
-     * The name of the queue on which to place the event.
-     *
-     * @var string
-     */
-    public $broadcastQueue = 'exchange-stats';
+    public $tradeOrder;
 
     /**
      * Create a new event instance.
      *
      * @return void
      */
-    public function __construct($orderBookData, $currencyPairId)
+    public function __construct(Trade_order $tradeOrder)
     {
-        $this->orderBookData = $orderBookData;
-        $this->currencyPairId = $currencyPairId;
+        $this->tradeOrder = $tradeOrder;
     }
 
     /**
@@ -40,8 +32,8 @@ class OrderBookUpdated implements ShouldBroadcast
      *
      * @return \Illuminate\Broadcasting\Channel|array
      */
-    public function broadcastOn()
+    /*public function broadcastOn()
     {
-        return new Channel('OrderBook.' . $this->currencyPairId);
-    }
+        return new PrivateChannel('channel-name');
+    }*/
 }

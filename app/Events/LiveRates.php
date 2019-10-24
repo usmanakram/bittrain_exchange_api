@@ -17,6 +17,13 @@ class LiveRates implements ShouldBroadcast
     public $rates;
 
     /**
+     * The name of the queue on which to place the event.
+     *
+     * @var string
+     */
+    public $broadcastQueue = 'exchange-stats';
+
+    /**
      * Create a new event instance.
      *
      * @return void
@@ -36,4 +43,34 @@ class LiveRates implements ShouldBroadcast
         // return new PrivateChannel('channel-name');
         return new Channel('live');
     }
+
+    /**
+     * The event's broadcast name.
+     *
+     * @return string
+     */
+    /*public function broadcastAs()
+    {
+        return 'server.created';
+    }*/
+
+    /**
+     * Get the data to broadcast.
+     *
+     * @return array
+     */
+    /*public function broadcastWith()
+    {
+        return ['id' => $this->user->id];
+    }*/
+
+    /**
+     * Determine if this event should broadcast.
+     *
+     * @return bool
+     */
+    /*public function broadcastWhen()
+    {
+        return $this->value > 100;
+    }*/
 }

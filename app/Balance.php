@@ -81,6 +81,6 @@ class Balance extends Model
         $balance = self::getUserBalance($user_id, $currency_id);
         $balance->decrement('total_balance', $amount);
         // $balance->decrement('in_order_balance', $amount);
-        $balance->increment('in_order_balance', (is_null($in_order_amount) ? $amount : $in_order_amount));
+        $balance->decrement('in_order_balance', (is_null($in_order_amount) ? $amount : $in_order_amount));
     }
 }

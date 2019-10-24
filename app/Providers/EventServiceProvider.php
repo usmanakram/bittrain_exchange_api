@@ -19,6 +19,7 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
         'App\Events\TradeOrderPlaced' => ['App\Listeners\TradeOrderPlacedListener'],
+        'App\Events\TradeExecuted' => ['App\Listeners\TradeExecutedListener'],
     ];
 
     /**

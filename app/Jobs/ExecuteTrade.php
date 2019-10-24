@@ -21,12 +21,34 @@ class ExecuteTrade implements ShouldQueue
 
     private $tradeOrder;
 
+    // Reference: https://laravel.com/docs/5.8/queues
+    /**
+     * The queue connection that should handle the job.
+     *
+     * @var string
+     */
+    // public $connection = 'sqs';
+
+    /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    // public $tries = 5;
+
     /**
      * The number of seconds to wait before retrying the job.
      *
      * @var int
      */
     // public $retryAfter = 3;
+
+    /**
+     * The number of seconds the job can run before timing out.
+     *
+     * @var int
+     */
+    // public $timeout = 120;
 
     /**
      * Delete the job if its models no longer exist.
@@ -72,6 +94,16 @@ class ExecuteTrade implements ShouldQueue
             $this->runTradingEngineNew($this->tradeOrder);
         }
     }
+
+    /**
+     * Determine the time at which the job should timeout.
+     *
+     * @return \DateTime
+     */
+    /*public function retryUntil()
+    {
+        return now()->addSeconds(5);
+    }*/
 
     /**
      * The job failed to process.
@@ -482,20 +514,23 @@ class ExecuteTrade implements ShouldQueue
 
 
             /**
-             * Pending Task:
-             * Broadcast data only if user is logged in. 
-             * It will save processing and decrease network traffic
+             * Pending Tasks:
+             * 1) Broadcast data only if user is logged in. 
+             *      It will save processing and decrease network traffic
+             * 2) All queries and broadcasting their result should be done in separate Job to optimize trading engine
              */
+            event(new \App\Events\TradeExecuted( $tradeOrder ));
+            // \App\Jobs\CalculateExchangeData::dispatch($tradeOrder)->onQueue('exchange-stats');
 
             // Broadcast a message to user for transaction performed
             // $message = ($tradeOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($tradeOrder->status === 2 ? 'Partially' : '') . ' Filled';
             $message = ($tradeOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($tradeOrder->tradable_quantity > 0 ? 'Partially ' : '') . 'Filled';
             event(new \App\Events\TradeOrderFilled( $message, $tradeOrder->user_id ));
-            if ($tradeOrder->user_id !== $counterOrder->user_id) {
+            // if ($tradeOrder->user_id !== $counterOrder->user_id) {
                 // $message = ($counterOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($counterOrder->status === 2 ? 'Partially' : '') . ' Filled';
                 $message = ($counterOrder->direction === 0 ? 'Sell' : 'Buy') . ' Order ' . ($counterOrder->tradable_quantity > 0 ? 'Partially ' : '') . 'Filled';
                 event(new \App\Events\TradeOrderFilled( $message, $counterOrder->user_id ));
-            }
+            // }
 
             // Broadcast updated User's OpenOrders
             $openOrdersData = (new \App\Http\Controllers\TradeOrdersController)->getUserOpenOrdersData($tradeOrder->user_id);
@@ -505,7 +540,7 @@ class ExecuteTrade implements ShouldQueue
             $openOrdersData = (new \App\Http\Controllers\TradeOrdersController)->getUserOpenOrdersData($counterOrder->user_id);
             event(new \App\Events\OpenOrdersUpdated( $openOrdersData, $counterOrder->user_id ));
             
-            // Broadcast updated Order Book
+            /*// Broadcast updated Order Book
             $orderBookData = (new \App\Http\Controllers\TradeOrdersController)->getOrderBookData($tradeOrder->currency_pair_id);
             event(new \App\Events\OrderBookUpdated( $orderBookData, $tradeOrder->currency_pair_id ));
 
@@ -519,7 +554,7 @@ class ExecuteTrade implements ShouldQueue
 
             // Broadcast latest prices
             $prices = (new \App\Http\Controllers\CurrencyPairsController)->latestPricesData();
-            event(new \App\Events\LiveRates( $prices ));
+            event(new \App\Events\LiveRates( $prices ));*/
 
             if ($objForNextCall) {
                 $this->runTradingEngineNew($objForNextCall);

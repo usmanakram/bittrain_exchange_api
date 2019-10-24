@@ -18,6 +18,13 @@ class TradeOrderFilled implements ShouldBroadcast
     private $user_id;
 
     /**
+     * The name of the queue on which to place the event.
+     *
+     * @var string
+     */
+    public $broadcastQueue = 'exchange-stats';
+
+    /**
      * Create a new event instance.
      *
      * @return void

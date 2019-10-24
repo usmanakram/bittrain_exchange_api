@@ -34,6 +34,15 @@ class AuthController extends Controller
 
     private function authFromBittrain($credentials)
     {
+        /*
+        Username:
+        tabassumali
+        qasimali
+        sntlabs
+        jhashmi
+        password: 
+        !Scitilop!1a
+        */
         /*$credentials = [
             'bit_uname' => 'tabassumali21',
             'bit_password' => '!Scitilop!1a'
