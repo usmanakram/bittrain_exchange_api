@@ -26,6 +26,16 @@ class PreflightResponse
             return response()->api('', 204)->header('Access-Control-Allow-Headers', 'Authorization');
         }
 
-        return $next($request);
+        // return $next($request);
+
+        /**
+         * Setting up header for unauthorized user
+         * Issue: Axios could not get response, because 'Access-Control-Allow-Origin: *' header was not being added in response and browser intercepts.
+         */
+        $response = $next($request);
+
+        $response->header('Access-Control-Allow-Origin', '*');
+
+        return $response;
     }
 }
