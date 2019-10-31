@@ -123,7 +123,7 @@ class ExecuteTrade implements ShouldQueue
         fclose($file);
     }
 
-    private function getCounterOrder(Trade_order $tradeOrder, $lastTrade)
+    private function getCounterOrder(Trade_order $tradeOrder, $marketRate)
     {
         /**
          * If trade order is limit order and placed wisely
@@ -133,8 +133,8 @@ class ExecuteTrade implements ShouldQueue
         if (
                 $tradeOrder->type === 1 && 
                 (
-                    ($tradeOrder->direction === 0 && $tradeOrder->rate > $lastTrade->rate) || 
-                    ($tradeOrder->direction === 1 && $tradeOrder->rate < $lastTrade->rate)
+                    ($tradeOrder->direction === 0 && $tradeOrder->rate > $marketRate) || 
+                    ($tradeOrder->direction === 1 && $tradeOrder->rate < $marketRate)
                 )
         ) {
             return null;
@@ -162,27 +162,27 @@ class ExecuteTrade implements ShouldQueue
             ->first();
     }
 
-    private function getTradeRate($tradeOrder, $counterOrder, $lastTrade)
+    private function getTradeRate($tradeOrder, $counterOrder, $marketRate)
     {
         $rate = null;
 
         if ($tradeOrder->type === 0) {
             if ($tradeOrder->direction === 0) {
                 // 2
-                $rate = ($counterOrder->rate < $lastTrade->rate) ? $counterOrder->rate : $lastTrade->rate;
+                $rate = ($counterOrder->rate < $marketRate) ? $counterOrder->rate : $marketRate;
             } else {
                 // 1
-                $rate = ($counterOrder->rate > $lastTrade->rate) ? $counterOrder->rate : $lastTrade->rate;
+                $rate = ($counterOrder->rate > $marketRate) ? $counterOrder->rate : $marketRate;
             }
         } elseif ($tradeOrder->type === 1) {
             if ($tradeOrder->direction === 0) {
 
                 // if user is selling below market rate (by mistake)
-                // if ($tradeOrder->rate < $lastTrade->rate) {
-                if ($tradeOrder->rate <= $lastTrade->rate) {
-                    if ($counterOrder->rate >= $lastTrade->rate) {
+                // if ($tradeOrder->rate < $marketRate) {
+                if ($tradeOrder->rate <= $marketRate) {
+                    if ($counterOrder->rate >= $marketRate) {
                         // 4.1
-                        $rate = $lastTrade->rate;
+                        $rate = $marketRate;
                     } elseif ($counterOrder->rate >= $tradeOrder->rate) {
                         // 4.2
                         $rate = $counterOrder->rate;
@@ -194,11 +194,11 @@ class ExecuteTrade implements ShouldQueue
             } else {
 
                 // if user is buying above market rate (by mistake)
-                // if ($tradeOrder->rate > $lastTrade->rate) {
-                if ($tradeOrder->rate >= $lastTrade->rate) {
-                    if ($counterOrder->rate <= $lastTrade->rate) {
+                // if ($tradeOrder->rate > $marketRate) {
+                if ($tradeOrder->rate >= $marketRate) {
+                    if ($counterOrder->rate <= $marketRate) {
                         // 3.1
-                        $rate = $lastTrade->rate;
+                        $rate = $marketRate;
                     } elseif ($counterOrder->rate <= $tradeOrder->rate) {
                         // 3.2
                         $rate = $counterOrder->rate;
@@ -248,12 +248,14 @@ class ExecuteTrade implements ShouldQueue
         // Get Market Rate
         $lastTrade = Trade_transaction::latest()->first();
 
-        $counterOrder = $this->getCounterOrder($tradeOrder, $lastTrade);
+        $marketRate = $lastTrade ? $lastTrade->rate : 0.01;
+
+        $counterOrder = $this->getCounterOrder($tradeOrder, $marketRate);
 
         if ($counterOrder) {
 
             // START
-            $rate = $this->getTradeRate($tradeOrder, $counterOrder, $lastTrade);
+            $rate = $this->getTradeRate($tradeOrder, $counterOrder, $marketRate);
             // $rate = $tradeOrder->rate;
             $tradable_quantity = $tradeOrder->tradable_quantity;
 
