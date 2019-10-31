@@ -148,6 +148,14 @@ class ExecuteTrade implements ShouldQueue
             'status' => 1,
         ]);
 
+        if ($tradeOrder->type === 1) {
+            if ($tradeOrder->direction === 0) {
+                $counterOrder = $counterOrder->where('rate', '>=', $tradeOrder->rate);
+            } else {
+                $counterOrder = $counterOrder->where('rate', '<=', $tradeOrder->rate);
+            }
+        }
+
         if ($tradeOrder->direction === 0) {
             $counterOrder = $counterOrder->orderBy('rate', 'desc');
         } else {
@@ -264,6 +272,11 @@ class ExecuteTrade implements ShouldQueue
             Log::error(var_dump($rate));
             Log::error('tradeOrderID: ' . $tradeOrder->id);
             Log::error('counterOrderID: ' . $counterOrder->id);
+
+            if ( !$rate ) {
+                return 'Suitable order not found';
+            }
+            
             // $rate = $tradeOrder->rate;
             $tradable_quantity = $tradeOrder->tradable_quantity;
 
