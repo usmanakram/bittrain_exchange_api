@@ -291,7 +291,7 @@ class ExecuteTrade implements ShouldQueue
 
             // $rate = $tradeOrder->rate;
             // $tradable_quantity = $tradeOrder->tradable_quantity;
-            $tradable_quantity = $tradeOrder->tradable_quantity > $counterOrder->tradable_quantity ? $tradeOrder->tradable_quantity : $counterOrder->tradable_quantity;
+            $tradable_quantity = $tradeOrder->tradable_quantity > $counterOrder->tradable_quantity ? $counterOrder->tradable_quantity : $tradeOrder->tradable_quantity;
 
             $currencyPairDetail = $tradeOrder->currency_pair;
 
