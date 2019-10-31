@@ -255,8 +255,11 @@ class ExecuteTrade implements ShouldQueue
         if ($counterOrder) {
 
             // START
+            Log::error('################################# Rate Before #################################');
+            Log::error($marketRate);
+            Log::error(var_dump($marketRate));
             $rate = $this->getTradeRate($tradeOrder, $counterOrder, $marketRate);
-            Log::error('################################# Rate #################################');
+            Log::error('################################# Rate After #################################');
             Log::error($rate);
             Log::error(var_dump($rate));
             // $rate = $tradeOrder->rate;
