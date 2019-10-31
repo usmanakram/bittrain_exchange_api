@@ -275,15 +275,15 @@ class ExecuteTrade implements ShouldQueue
         if ($counterOrder) {
 
             // START
-            Log::error('################################# Rate Before #################################');
-            Log::error($marketRate);
-            Log::error(var_dump($marketRate));
+            // Log::error('################################# Rate Before #################################');
+            // Log::error($marketRate);
+            // Log::error(var_dump($marketRate));
             $rate = $this->getTradeRate($tradeOrder, $counterOrder, $marketRate);
-            Log::error('################################# Rate After #################################');
-            Log::error($rate);
-            Log::error(var_dump($rate));
-            Log::error('tradeOrderID: ' . $tradeOrder->id);
-            Log::error('counterOrderID: ' . $counterOrder->id);
+            // Log::error('################################# Rate After #################################');
+            // Log::error($rate);
+            // Log::error(var_dump($rate));
+            // Log::error('tradeOrderID: ' . $tradeOrder->id);
+            // Log::error('counterOrderID: ' . $counterOrder->id);
 
             if ( !$rate ) {
                 return 'Suitable order not found';
