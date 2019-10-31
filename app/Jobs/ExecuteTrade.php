@@ -256,6 +256,9 @@ class ExecuteTrade implements ShouldQueue
 
             // START
             $rate = $this->getTradeRate($tradeOrder, $counterOrder, $marketRate);
+            Log::error('################################# Rate #################################');
+            Log::error($rate);
+            Log::error(var_dump($rate));
             // $rate = $tradeOrder->rate;
             $tradable_quantity = $tradeOrder->tradable_quantity;
 
