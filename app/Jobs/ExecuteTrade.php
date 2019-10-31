@@ -290,7 +290,8 @@ class ExecuteTrade implements ShouldQueue
             }
 
             // $rate = $tradeOrder->rate;
-            $tradable_quantity = $tradeOrder->tradable_quantity;
+            // $tradable_quantity = $tradeOrder->tradable_quantity;
+            $tradable_quantity = $tradeOrder->tradable_quantity > $counterOrder->tradable_quantity ? $tradeOrder->tradable_quantity : $counterOrder->tradable_quantity;
 
             $currencyPairDetail = $tradeOrder->currency_pair;
 
@@ -306,7 +307,7 @@ class ExecuteTrade implements ShouldQueue
                 if ($tradeOrder->direction === 1) {
                     $buy_order_id = $tradeOrder->id;
                     $sell_order_id = $counterOrder->id;
-                    
+
                     // if rate has been increased
                     if ($rate > $tradeOrder->rate) {
                         $requiredAdditionalBalance = $tradeOrder->tradable_quantity * ($rate - $tradeOrder->rate);
