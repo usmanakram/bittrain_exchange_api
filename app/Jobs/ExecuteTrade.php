@@ -221,6 +221,18 @@ class ExecuteTrade implements ShouldQueue
         return $rate;
     }
 
+    private function getObjectForNextCall($tradeOrder, $counterOrder, $tradeOrderQuantity, $counterOrderQuantity)
+    {
+        if ($tradeOrderQuantity === $counterOrderQuantity) {
+            $objForNextCall = null;
+        } elseif ($tradeOrderQuantity > $counterOrderQuantity) {
+            $objForNextCall = $tradeOrder;
+        } else {
+            $objForNextCall = $counterOrder;
+        }
+        return $objForNextCall;
+    }
+
     private function updateTradeOrder($order, $tradable_quantity, $objForNextCall)
     {
         if ($order->tradable_quantity <= $tradable_quantity || is_null($objForNextCall) || $order->id !== $objForNextCall->id) {
@@ -276,16 +288,25 @@ class ExecuteTrade implements ShouldQueue
             if ( !$rate ) {
                 return 'Suitable order not found';
             }
-            
+
             // $rate = $tradeOrder->rate;
             $tradable_quantity = $tradeOrder->tradable_quantity;
 
             $currencyPairDetail = $tradeOrder->currency_pair;
 
+
+            // START
+            $objForNextCall = $this->getObjectForNextCall($tradeOrder, $counterOrder, $tradeOrder->tradable_quantity, $counterOrder->tradable_quantity);
+            // END
+
+
             // if ($tradeOrder->type === 0 && $tradeOrder->rate !== $counterOrder->rate) {
             //     $rate = $counterOrder->rate;
                 
                 if ($tradeOrder->direction === 1) {
+                    $buy_order_id = $tradeOrder->id;
+                    $sell_order_id = $counterOrder->id;
+                    
                     // if rate has been increased
                     if ($rate > $tradeOrder->rate) {
                         $requiredAdditionalBalance = $tradeOrder->tradable_quantity * ($rate - $tradeOrder->rate);
@@ -298,9 +319,16 @@ class ExecuteTrade implements ShouldQueue
                         if ($availableBalance < $requiredAdditionalBalance) {
                             // Decrease "tradable_quantity"
                             $tradable_quantity = ($availableBalance + $tradeOrder->rate * $tradeOrder->tradable_quantity) / $rate;
+
+                            // START
+                            $objForNextCall = $this->getObjectForNextCall($tradeOrder, $counterOrder, $tradable_quantity, $counterOrder->tradable_quantity);
+                            // END
                         }
                     }
                 } else {
+                    $buy_order_id = $counterOrder->id;
+                    $sell_order_id = $tradeOrder->id;
+
                     // if rate has been increased
                     if ($rate > $counterOrder->rate) {
                         $requiredAdditionalBalance = $counterOrder->tradable_quantity * ($rate - $counterOrder->rate);
@@ -313,6 +341,10 @@ class ExecuteTrade implements ShouldQueue
                         if ($availableBalance < $requiredAdditionalBalance) {
                             // Decrease "tradable_quantity"
                             $tradable_quantity = ($availableBalance + $counterOrder->rate * $counterOrder->tradable_quantity) / $rate;
+
+                            // START
+                            $objForNextCall = $this->getObjectForNextCall($tradeOrder, $counterOrder, $tradeOrder->tradable_quantity, $tradable_quantity);
+                            // END
                         }
                     }
                 }
@@ -353,7 +385,7 @@ class ExecuteTrade implements ShouldQueue
                 }
             }*/
 
-            if ($tradeOrder->direction === 0) {
+            /*if ($tradeOrder->direction === 0) {
                 $buy_order_id = $counterOrder->id;
                 $sell_order_id = $tradeOrder->id;
 
@@ -375,7 +407,7 @@ class ExecuteTrade implements ShouldQueue
                 } else {
                     $objForNextCall = $counterOrder;
                 }
-            }
+            }*/
 
             DB::beginTransaction();
 
