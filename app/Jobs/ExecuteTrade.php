@@ -262,6 +262,8 @@ class ExecuteTrade implements ShouldQueue
             Log::error('################################# Rate After #################################');
             Log::error($rate);
             Log::error(var_dump($rate));
+            Log::error('tradeOrderID: ' . $tradeOrder->id);
+            Log::error('counterOrderID: ' . $counterOrder->id);
             // $rate = $tradeOrder->rate;
             $tradable_quantity = $tradeOrder->tradable_quantity;
 
