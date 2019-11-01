@@ -221,16 +221,19 @@ class ExecuteTrade implements ShouldQueue
         return $rate;
     }
 
-    private function getObjectForNextCall($tradeOrder, $counterOrder, $tradeOrderQuantity, $counterOrderQuantity)
+    private function getObjectForNextCallAndTradableQuantity($tradeOrder, $counterOrder, $tradeOrderQuantity, $counterOrderQuantity)
     {
         if ($tradeOrderQuantity === $counterOrderQuantity) {
             $objForNextCall = null;
+            $tradable_quantity = $tradeOrderQuantity;
         } elseif ($tradeOrderQuantity > $counterOrderQuantity) {
             $objForNextCall = $tradeOrder;
+            $tradable_quantity = $counterOrderQuantity;
         } else {
             $objForNextCall = $counterOrder;
+            $tradable_quantity = $tradeOrderQuantity;
         }
-        return $objForNextCall;
+        return compact('objForNextCall', 'tradable_quantity');
     }
 
     private function updateTradeOrder($order, $tradable_quantity, $objForNextCall)
@@ -291,13 +294,13 @@ class ExecuteTrade implements ShouldQueue
 
             // $rate = $tradeOrder->rate;
             // $tradable_quantity = $tradeOrder->tradable_quantity;
-            $tradable_quantity = $tradeOrder->tradable_quantity > $counterOrder->tradable_quantity ? $counterOrder->tradable_quantity : $tradeOrder->tradable_quantity;
+            $tradable_quantity = $tradeOrder->tradable_quantity < $counterOrder->tradable_quantity ? $tradeOrder->tradable_quantity : $counterOrder->tradable_quantity;
 
             $currencyPairDetail = $tradeOrder->currency_pair;
 
 
             // START
-            $objForNextCall = $this->getObjectForNextCall($tradeOrder, $counterOrder, $tradeOrder->tradable_quantity, $counterOrder->tradable_quantity);
+            extract($this->getObjectForNextCallAndTradableQuantity($tradeOrder, $counterOrder, $tradeOrder->tradable_quantity, $counterOrder->tradable_quantity));
             // END
 
 
@@ -322,7 +325,7 @@ class ExecuteTrade implements ShouldQueue
                             $tradable_quantity = ($availableBalance + $tradeOrder->rate * $tradeOrder->tradable_quantity) / $rate;
 
                             // START
-                            $objForNextCall = $this->getObjectForNextCall($tradeOrder, $counterOrder, $tradable_quantity, $counterOrder->tradable_quantity);
+                            extract($this->getObjectForNextCallAndTradableQuantity($tradeOrder, $counterOrder, $tradable_quantity, $counterOrder->tradable_quantity));
                             // END
                         }
                     }
@@ -344,7 +347,7 @@ class ExecuteTrade implements ShouldQueue
                             $tradable_quantity = ($availableBalance + $counterOrder->rate * $counterOrder->tradable_quantity) / $rate;
 
                             // START
-                            $objForNextCall = $this->getObjectForNextCall($tradeOrder, $counterOrder, $tradeOrder->tradable_quantity, $tradable_quantity);
+                            extract($this->getObjectForNextCallAndTradableQuantity($tradeOrder, $counterOrder, $tradeOrder->tradable_quantity, $tradable_quantity));
                             // END
                         }
                     }
