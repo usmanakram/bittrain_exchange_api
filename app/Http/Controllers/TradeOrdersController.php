@@ -58,13 +58,13 @@ class TradeOrdersController extends Controller
             Log::error('In Order Balance: ' . $userBalance->in_order_balance);
             Log::error('Available Balance: ' . $availableBalance);
 			Log::error('################################## END: Balances ##################################');
-			$availableBalance *= 100000000;
-			$requiredBalance *= 100000000;
 
 			if ($availableBalance > $requiredBalance) {
 				Log::error('$availableBalance > $requiredBalance');
 			} elseif ($availableBalance < $requiredBalance) {
 				Log::error('$availableBalance < $requiredBalance');
+            	Log::error($availableBalance);
+            	Log::error($requiredBalance);
 			} elseif ($availableBalance === $requiredBalance) {
 				Log::error('$availableBalance === $requiredBalance');
 			}
