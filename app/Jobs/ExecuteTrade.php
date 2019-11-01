@@ -239,7 +239,10 @@ class ExecuteTrade implements ShouldQueue
     private function updateTradeOrder($order, $tradable_quantity, $objForNextCall)
     {
         if ($order->tradable_quantity <= $tradable_quantity || is_null($objForNextCall) || $order->id !== $objForNextCall->id) {
-            $order->tradable_quantity = 0;
+            // $order->tradable_quantity = 0;
+            if ($order->tradable_quantity <= $tradable_quantity) {
+                $order->tradable_quantity = 0;
+            }
             $order->status = 2;
             $order->save();
         } else {
@@ -247,19 +250,23 @@ class ExecuteTrade implements ShouldQueue
         }
     }
 
-    private function updateBalances($order, $currencyPairDetail, $tradable_quantity, $rate, $buy_fee, $sell_fee)
+    private function updateBalances($order, $currencyPairDetail, $tradable_quantity, $rate, $buyFee, $sellFee, $objForNextCall)
     {
         if ($order->direction === 1) { // buy
             // Increase buying(base) currency balance
-            Balance::incrementUserBalance($order->user_id, $currencyPairDetail->base_currency_id, ($tradable_quantity - $buy_fee));
+            Balance::incrementUserBalance($order->user_id, $currencyPairDetail->base_currency_id, ($tradable_quantity - $buyFee));
 
             // Decrease selling(quote) currency balances ("total_balance", "in_order_balance")
-            // Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $order->rate));
-            Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $rate), ($tradable_quantity * $order->rate));
+            if (is_null($objForNextCall) || $order->id !== $objForNextCall->id) {
+                $in_order_balance_decrement = $order->tradable_quantity * $order->rate;
+            } else {
+                $in_order_balance_decrement = $tradable_quantity * $order->rate;
+            }
+            Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $rate), $in_order_balance_decrement);
         
         } elseif ($order->direction === 0) { // sell
             // Increase buying(quote) currency balance
-            Balance::incrementUserBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $rate - $sell_fee));
+            Balance::incrementUserBalance($order->user_id, $currencyPairDetail->quote_currency_id, ($tradable_quantity * $rate - $sellFee));
 
             // Decrease selling(base) currency balances ("total_balance", "in_order_balance")
             Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $currencyPairDetail->base_currency_id, $tradable_quantity);
@@ -442,8 +449,8 @@ class ExecuteTrade implements ShouldQueue
                 // Increase "total_balance" in "balances" table for buying currency
                 $currencyPairDetail = $tradeOrder->currency_pair;
 
-                $this->updateBalances($tradeOrder, $currencyPairDetail, $tradable_quantity, $rate, $buy_fee, $sell_fee);
-                $this->updateBalances($counterOrder, $currencyPairDetail, $tradable_quantity, $rate, $buy_fee, $sell_fee);
+                $this->updateBalances($tradeOrder, $currencyPairDetail, $tradable_quantity, $rate, $buy_fee, $sell_fee, $objForNextCall);
+                $this->updateBalances($counterOrder, $currencyPairDetail, $tradable_quantity, $rate, $buy_fee, $sell_fee, $objForNextCall);
 
                 // Update "latest_prices" table with latest price & volume
                 $latest_price = Latest_price::whereCurrencyPairId($tradeOrder->currency_pair_id)->update([
