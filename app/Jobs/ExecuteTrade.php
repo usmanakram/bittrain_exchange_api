@@ -242,6 +242,8 @@ class ExecuteTrade implements ShouldQueue
             // $order->tradable_quantity = 0;
             if ($order->tradable_quantity <= $tradable_quantity) {
                 $order->tradable_quantity = 0;
+            } else {
+                $order->tradable_quantity = $order->tradable_quantity - $tradable_quantity;
             }
             $order->status = 2;
             $order->save();
