@@ -50,7 +50,7 @@ class TradeOrdersController extends Controller
 			$userBalance = $balance->quote_currency->balances[0];
 			$availableBalance = $userBalance->total_balance - $userBalance->in_order_balance;
 
-			/*Log::error('################################# START: Balances #################################');
+			Log::error('################################# START: Balances #################################');
             Log::error('Quantity: ' . $request->quantity);
             Log::error('Price: ' . $request->price);
             Log::error('Required Balance: ' . $requiredBalance);
@@ -59,7 +59,7 @@ class TradeOrdersController extends Controller
             Log::error('Available Balance: ' . $availableBalance);
 			Log::error('################################## END: Balances ##################################');
 
-			if ($availableBalance > $requiredBalance) {
+			/*if ($availableBalance > $requiredBalance) {
 				Log::error('$availableBalance > $requiredBalance');
 			} elseif ($availableBalance < $requiredBalance) {
 				Log::error('$availableBalance < $requiredBalance');
