@@ -258,7 +258,7 @@ class ExecuteTrade implements ShouldQueue
 
             // Decrease selling(quote) currency balances ("total_balance", "in_order_balance")
             if (is_null($objForNextCall) || $order->id !== $objForNextCall->id) {
-                $in_order_balance_decrement = $order->tradable_quantity * $order->rate;
+                $in_order_balance_decrement = ($order->tradable_quantity + $tradable_quantity) * $order->rate;
             } else {
                 $in_order_balance_decrement = $tradable_quantity * $order->rate;
             }
