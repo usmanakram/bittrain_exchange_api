@@ -258,7 +258,7 @@ class ExecuteTrade implements ShouldQueue
 
             // Decrease selling(quote) currency balances ("total_balance", "in_order_balance")
             if (is_null($objForNextCall) || $order->id !== $objForNextCall->id) {
-                $in_order_balance_decrement = ($order->tradable_quantity + $tradable_quantity) * $order->rate;
+                $in_order_balance_decrement = $order->tradable_quantity * $order->rate;
             } else {
                 $in_order_balance_decrement = $tradable_quantity * $order->rate;
             }
@@ -441,9 +441,9 @@ class ExecuteTrade implements ShouldQueue
                     'sell_fee' => $sell_fee,
                 ]);
 
-                // Decrease "tradable_quantity" & update "status" in "trade_orders" table
+                /*// Decrease "tradable_quantity" & update "status" in "trade_orders" table
                 $this->updateTradeOrder($tradeOrder, $tradable_quantity, $objForNextCall);
-                $this->updateTradeOrder($counterOrder, $tradable_quantity, $objForNextCall);
+                $this->updateTradeOrder($counterOrder, $tradable_quantity, $objForNextCall);*/
 
                 // Decrease "total_balance" & "in_order_balance" in "balances" table for selling currency
                 // Increase "total_balance" in "balances" table for buying currency
@@ -451,6 +451,10 @@ class ExecuteTrade implements ShouldQueue
 
                 $this->updateBalances($tradeOrder, $currencyPairDetail, $tradable_quantity, $rate, $buy_fee, $sell_fee, $objForNextCall);
                 $this->updateBalances($counterOrder, $currencyPairDetail, $tradable_quantity, $rate, $buy_fee, $sell_fee, $objForNextCall);
+
+                // Decrease "tradable_quantity" & update "status" in "trade_orders" table
+                $this->updateTradeOrder($tradeOrder, $tradable_quantity, $objForNextCall);
+                $this->updateTradeOrder($counterOrder, $tradable_quantity, $objForNextCall);
 
                 // Update "latest_prices" table with latest price & volume
                 $latest_price = Latest_price::whereCurrencyPairId($tradeOrder->currency_pair_id)->update([
