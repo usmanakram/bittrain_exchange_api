@@ -11,6 +11,31 @@ use App\User;
 
 class UsersController extends Controller
 {
+    public function show($id){
+        
+        $user_data=User::find($id);
+        //$data['users']=$users;
+        $users=$user_data->bittrain_detail;
+        $balances=$user_data->balances;
+       
+        $data2[] = [
+            'info' => $users,
+            'balances' => $balances,
+            'open_orders' => $user_data->trade_orders->where('status','=', 1),
+            'order_history' => $user_data->trade_orders,
+            'deposit_history' => $user_data->transactions->where('type','=', 'deposit'),
+            'withdraw_history' => $user_data->transactions->where('type','=', 'withdrawal'),
+        ];
+        
+        return response()->api($data2);
+    }
+    public function index(){
+        
+        $users=User::all();
+        //$data['users']=$users;
+        return response()->api($users);
+        
+    }
 	private function convertTimeToString($time)
 	{
 		$alphabets = 'abcdefghij';
@@ -152,11 +177,11 @@ class UsersController extends Controller
     	];
     	// $credentials = 'bit_uname=tabassumali21&bit_password=!Scitilop!1';
 
-
     	// $endpoint = 'http://18.220.217.218/bittrain_exchange_api/public/api/currencies';
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/currencies';
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-get-apiendpoint';
     	// $endpoint = 'http://localhost/projects/bittrain_exchange/bittrain_exchange_api/public/api/test-post-apiendpoint';
+    	
     	$endpoint = 'https://bittrain.org/API/Welcome/check_web_login';
     	// $endpoint = 'http://18.220.217.218/test.php';
 

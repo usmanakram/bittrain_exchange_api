@@ -286,14 +286,14 @@ class TradeOrdersController extends Controller
     	$where = [
     		'currency_pair_id' => $pair_id,
     		'direction' => 1, // buy orders
-    		// 'type' => 1, // limit orders
+    		'type' => 1, // limit orders
     		'status' => 1, // available for trade
     	];
 
     	DB::statement("SET sql_mode = '' ");
 
     	$buyOrders = Trade_order::where($where)
-    		->whereIn('type', [0, 1]) // instant/market & limit orders
+    		// ->whereIn('status', [1, 2])
     		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity, rate * SUM(tradable_quantity) AS total'))
     		->groupBy('rate')
     		->orderBy('rate', 'desc')
@@ -302,7 +302,7 @@ class TradeOrdersController extends Controller
     	
     	$where['direction'] = 0;
     	$sellOrders = Trade_order::where($where)
-    		->whereIn('type', [0, 1]) // instant/market & limit orders
+    		// ->whereIn('status', [1, 2])
     		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity, rate * SUM(tradable_quantity) AS total'))
     		->groupBy('rate')
     		->orderBy('rate', 'asc')
@@ -374,7 +374,8 @@ class TradeOrdersController extends Controller
 
     public function getUserTrades(Request $request)
     {
-		/*
+		
+        /*
 		page: 1
 		rows: 16
 		start: 1569870000000
@@ -563,6 +564,29 @@ class TradeOrdersController extends Controller
 		return $orders->all();
     }
 
+    public function getAllOpenOrdersData()
+    {
+        $orders = Trade_order::where([
+            'status' => 1
+        ])
+        ->with('currency_pair:id,symbol')
+        ->latest()
+        ->get()
+        ->makeVisible('created_at');
+        
+        $orders->map(function($item) {
+            $item['currency_pair_symbol'] = $item->currency_pair->symbol;
+            unset($item->currency_pair);
+        });
+            
+            /**
+             * ->all() is required if we need data (returned by this method) in some other method.
+             * If we skip ->all(), data fetched from other tables is skipped and "created_at" fields is also skipped
+             */
+            $open_orders=$orders->all();
+            return response()->api($open_orders);
+    }
+    
     public function getUserOpenOrders(Request $request)
     {
     	$orders = $this->getUserOpenOrdersData($request->user()->id);
