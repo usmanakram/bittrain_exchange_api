@@ -286,14 +286,14 @@ class TradeOrdersController extends Controller
     	$where = [
     		'currency_pair_id' => $pair_id,
     		'direction' => 1, // buy orders
-    		// 'type' => 1, // limit orders
+    		'type' => 1, // limit orders
     		'status' => 1, // available for trade
     	];
 
     	DB::statement("SET sql_mode = '' ");
 
     	$buyOrders = Trade_order::where($where)
-    		->whereIn('type', [0, 1]) // instant/market & limit orders
+    		// ->whereIn('status', [1, 2])
     		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity, rate * SUM(tradable_quantity) AS total'))
     		->groupBy('rate')
     		->orderBy('rate', 'desc')
@@ -302,7 +302,7 @@ class TradeOrdersController extends Controller
     	
     	$where['direction'] = 0;
     	$sellOrders = Trade_order::where($where)
-    		->whereIn('type', [0, 1]) // instant/market & limit orders
+    		// ->whereIn('status', [1, 2])
     		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity, rate * SUM(tradable_quantity) AS total'))
     		->groupBy('rate')
     		->orderBy('rate', 'asc')
@@ -583,7 +583,8 @@ class TradeOrdersController extends Controller
              * ->all() is required if we need data (returned by this method) in some other method.
              * If we skip ->all(), data fetched from other tables is skipped and "created_at" fields is also skipped
              */
-            return $orders->all();
+            $open_orders=$orders->all();
+            return response()->api($open_orders);
     }
     
     public function getUserOpenOrders(Request $request)

@@ -17,19 +17,9 @@ class BalancesController extends Controller
 			}])
 			->get(['id', 'name', 'symbol']);
 
-		$balances->map(function($item) use ($user_id) {
-			// if balance does not exist for this currency
-			if ( !isset($item['balances'][0]) ) {
-				$item->balances()->create(['user_id' => $user_id, 'in_order_balance' => 0, 'total_balance' => 0]);
-
-				$item['total_balance'] = $item['in_order_balance'] = 0;
-			} else {
-				$item['total_balance'] = $item['balances'][0]['total_balance'];
-				$item['in_order_balance'] = $item['balances'][0]['in_order_balance'];
-			}
-			
-			// $item['total_balance'] = $item['balances'][0]['total_balance'] ?? 0;
-			// $item['in_order_balance'] = $item['balances'][0]['in_order_balance'] ?? 0;
+		$balances->map(function($item) {
+			$item['total_balance'] = $item['balances'][0]['total_balance'] ?? 0;
+			$item['in_order_balance'] = $item['balances'][0]['in_order_balance'] ?? 0;
 			unset($item['balances']);
 			return $item;
 		})
@@ -64,13 +54,13 @@ class BalancesController extends Controller
 	    
 	    $balances = Balance::all();
 	    
-	    $balances->map(function($item) {
+	   /*  $balances->map(function($item) {
 	        $item['total_balance'] = $item['balances'][0]['total_balance'] ?? 0;
 	        $item['in_order_balance'] = $item['balances'][0]['in_order_balance'] ?? 0;
 	        unset($item['balances']);
 	        return $item;
-	    });
+	    }); */
 	    
-	    return compact('balances');
+	    return response()->api($balances);
 	}
 }

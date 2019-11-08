@@ -27,13 +27,14 @@ class UsersController extends Controller
             'withdraw_history' => $user_data->transactions->where('type','=', 'withdrawal'),
         ];
         
-        return  compact('data2');
+        return response()->api($data2);
     }
     public function index(){
         
         $users=User::all();
         //$data['users']=$users;
-        return  compact('users');
+        return response()->api($users);
+        
     }
 	private function convertTimeToString($time)
 	{

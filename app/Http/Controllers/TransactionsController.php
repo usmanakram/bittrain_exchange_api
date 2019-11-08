@@ -182,7 +182,7 @@ class TransactionsController extends Controller
 	}
 	public function getAllPendingWithdraw(){
 	    
-	    $withdrawals =  Transaction::with('currency:id,name,symbol')
+	    $pending_withdrawals =  Transaction::with('currency:id,name,symbol')
 	    ->where([
 	        'type' => 'withdrawal',
 	        'status' => '0'
@@ -192,7 +192,7 @@ class TransactionsController extends Controller
 	    ->get()
 	    ->makeVisible('created_at');
 	    
-	    return compact('pending_withdrawals');
+	    return response()->api($pending_withdrawals);
 	}
 	public function getAllPaidWithdraw(){
 	    
@@ -206,7 +206,7 @@ class TransactionsController extends Controller
 	    ->get()
 	    ->makeVisible('created_at');
 	    
-	    return compact('paid_withdrawals');
+	    return response()->api($withdrawals);
 	}
 	public function getOverallDeposits(){
 	    
@@ -218,7 +218,7 @@ class TransactionsController extends Controller
 	    ->get()
 	    ->makeVisible('created_at');
 	    
-	    return compact('deposits');
+	    return response()->api($deposits);
 	}
 
 	private function insertCoinpaymentsWithdrawal($user_id, $address, $amount, $currency_id)
