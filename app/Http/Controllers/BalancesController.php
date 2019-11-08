@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Currency;
+use App\Balance;
 
 class BalancesController extends Controller
 {
@@ -48,5 +49,18 @@ class BalancesController extends Controller
 		$balances = $this->getBalancesData($request->user()->id);
 
 		return response()->api($balances);
+	}
+	public function getAllBalances(){
+	    
+	    $balances = Balance::all();
+	    
+	    $balances->map(function($item) {
+	        $item['total_balance'] = $item['balances'][0]['total_balance'] ?? 0;
+	        $item['in_order_balance'] = $item['balances'][0]['in_order_balance'] ?? 0;
+	        unset($item['balances']);
+	        return $item;
+	    });
+	    
+	    return compact('balances');
 	}
 }

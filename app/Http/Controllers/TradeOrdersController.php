@@ -374,7 +374,8 @@ class TradeOrdersController extends Controller
 
     public function getUserTrades(Request $request)
     {
-		/*
+		
+        /*
 		page: 1
 		rows: 16
 		start: 1569870000000
@@ -563,6 +564,28 @@ class TradeOrdersController extends Controller
 		return $orders->all();
     }
 
+    public function getAllOpenOrdersData()
+    {
+        $orders = Trade_order::where([
+            'status' => 1
+        ])
+        ->with('currency_pair:id,symbol')
+        ->latest()
+        ->get()
+        ->makeVisible('created_at');
+        
+        $orders->map(function($item) {
+            $item['currency_pair_symbol'] = $item->currency_pair->symbol;
+            unset($item->currency_pair);
+        });
+            
+            /**
+             * ->all() is required if we need data (returned by this method) in some other method.
+             * If we skip ->all(), data fetched from other tables is skipped and "created_at" fields is also skipped
+             */
+            return $orders->all();
+    }
+    
     public function getUserOpenOrders(Request $request)
     {
     	$orders = $this->getUserOpenOrdersData($request->user()->id);
