@@ -46,4 +46,9 @@ class Trade_order extends Model
     {
     	return $this->hasMany(Trade_transaction::class, 'sell_order_id');
     }
+
+    public function condition()
+    {
+        return $this->hasOne(Trade_order_condition::class);
+    }
 }

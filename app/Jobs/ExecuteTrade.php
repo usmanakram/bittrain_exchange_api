@@ -275,6 +275,28 @@ class ExecuteTrade implements ShouldQueue
         }
     }
 
+    private function activateConditionalOrders(Trade_order $tradeOrder, $marketRate)
+    {
+        $orders = Trade_order::where([
+            'currency_pair_id' => $tradeOrder->currency_pair_id,
+            'type' => 2, // stop_limit
+        ])
+        ->with('condition')
+        ->whereHas('condition', function($query) use ($marketRate) {
+            $query
+                ->where('lower_trigger_rate', '>=', $marketRate)
+                ->orWhere('upper_trigger_rate', '<=', $marketRate);
+        })
+        ->get();
+
+        foreach ($orders as $order) {
+            $order->status = 1;
+            $order->save();
+            $order->condition->status = 2;
+            $order->condition->save();
+        }
+    }
+
     private function runTradingEngine(Trade_order $tradeOrder)
     {
         // Get Market Rate
@@ -465,6 +487,9 @@ class ExecuteTrade implements ShouldQueue
                     'last_price' => $rate,
                     'volume' => DB::raw('volume + ' . ($tradable_quantity * $rate))
                 ]);
+
+                // Trigger conditional orders
+                $this->activateConditionalOrders($tradeOrder, $rate);
 
                 DB::commit();
 
