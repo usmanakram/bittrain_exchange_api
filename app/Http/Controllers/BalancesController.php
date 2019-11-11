@@ -64,12 +64,22 @@ class BalancesController extends Controller
 	    
 	    $balances = Balance::all();
 	    
-	   /*  $balances->map(function($item) {
-	        $item['total_balance'] = $item['balances'][0]['total_balance'] ?? 0;
-	        $item['in_order_balance'] = $item['balances'][0]['in_order_balance'] ?? 0;
-	        unset($item['balances']);
+	     $balances->map(function($item) {
+	         //$item['username'] = $item->user->email;
+	         $item['currency_symb'] = $item->currency->symbol;
+	         $user_data = $item->user->bittrain_detail->data;
+	         
+	         $json = json_decode($user_data);
+	         
+	         $item['username']=$json->novus_user[0]->username;
+	          
+	        unset($item['currency_id']);
+	        unset($item['currency']); 
+	        unset($item['user_id']);
+	        unset($item['user']);
+	        
 	        return $item;
-	    }); */
+	    }); 
 	    
 	    return response()->api($balances);
 	}
