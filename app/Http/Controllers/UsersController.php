@@ -31,7 +31,7 @@ class UsersController extends Controller
     }
     public function index(){
         
-        $users=User::all();
+        $users=User::all()->makeVisible('created_at');
         //$data['users']=$users;
         return response()->api($users);
         
