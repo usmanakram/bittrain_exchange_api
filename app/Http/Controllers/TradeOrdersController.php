@@ -9,6 +9,7 @@ use App\Currency_pair;
 use App\Latest_price;
 use App\Trade_order;
 use App\Trade_transaction;
+use App\Trade_order_condition;
 use App\Balance;
 
 class TradeOrdersController extends Controller
@@ -47,17 +48,25 @@ class TradeOrdersController extends Controller
 			 * So, we should create records in balances against these (base, quote) currencies for current user
 			 * 
 			 */
+			if ( !isset($balance->quote_currency->balances[0]) ) {
+				$balance->quote_currency->balances()->create(['user_id' => $user_id, 'in_order_balance' => 0, 'total_balance' => 0]);
+				
+				$balance->quote_currency->load(['balances' => function($query) use ($user_id) {
+					$query->whereUserId($user_id);
+				}])->find($request->pair_id);
+			}
+
 			$userBalance = $balance->quote_currency->balances[0];
 			$availableBalance = $userBalance->total_balance - $userBalance->in_order_balance;
 
-			Log::error('################################# START: Balances #################################');
-            Log::error('Quantity: ' . $request->quantity);
-            Log::error('Price: ' . $request->price);
-            Log::error('Required Balance: ' . $requiredBalance);
-            Log::error('Total Balance: ' . $userBalance->total_balance);
-            Log::error('In Order Balance: ' . $userBalance->in_order_balance);
-            Log::error('Available Balance: ' . $availableBalance);
-			Log::error('################################## END: Balances ##################################');
+			// Log::error('################################# START: Balances #################################');
+			// Log::error('Quantity: ' . $request->quantity);
+			// Log::error('Price: ' . $request->price);
+			// Log::error('Required Balance: ' . $requiredBalance);
+			// Log::error('Total Balance: ' . $userBalance->total_balance);
+			// Log::error('In Order Balance: ' . $userBalance->in_order_balance);
+			// Log::error('Available Balance: ' . $availableBalance);
+			// Log::error('################################## END: Balances ##################################');
 
 			/*if ($availableBalance > $requiredBalance) {
 				Log::error('$availableBalance > $requiredBalance');
@@ -84,17 +93,47 @@ class TradeOrdersController extends Controller
 					// 'trigger_rate' => NULL,
 					'tradable_quantity' => $request->quantity,
 					'type' => $request->type,
-					'status' => 1,
+					// 'status' => 1,
+					'status' => ($request->type === '2' ? 0 : 1),
 				]);
 
+				// For StopLimit order
+				if ($request->type === '2') {
+					$insert = [
+						'trade_order_id' => $order->id,
+						// 'user_id' => $user_id,
+						// 'currency_pair_id' => $request->pair_id,
+						// 'direction' => 1,
+						// 'quantity' => $request->quantity,
+						// 'rate' => $request->price,
+						// 'type' => $request->type,
+						'status' => 1,
+					];
+
+					// Get Market Rate
+					$marketRate = Trade_transaction::latest()->first()->rate ?? 0.01;
+					// $marketRate = $lastTrade ? $lastTrade->rate : 0.01;
+					if ($request->trigger_rate > $marketRate) {
+						// $insert['min_trigger_rate'] = $request->trigger_rate;
+						$insert['upper_trigger_rate'] = $request->trigger_rate;
+					} else {
+						// $insert['max_trigger_rate'] = $request->trigger_rate;
+						$insert['lower_trigger_rate'] = $request->trigger_rate;
+					}
+
+					Trade_order_condition::create($insert);
+				}
+
 				// Update available balance
-				$update = Balance::where([
+				/*$update = Balance::where([
 					'user_id' => $user_id, 
 					'currency_id' => $userBalance->currency_id
 				])
-				->increment('in_order_balance', $requiredBalance);
+				->increment('in_order_balance', $requiredBalance);*/
+				$userBalance->increment('in_order_balance', $requiredBalance);
 
-				if ($order && $update) {
+				// if ($order && $update) {
+				if ($order) {
 					DB::commit();
 
 					// Trigger event to add trade in queue for trade execution
@@ -170,6 +209,14 @@ class TradeOrdersController extends Controller
 			 * So, we should create records in balances against these (base, quote) currencies for current user
 			 * 
 			 */
+			if ( !isset($balance->base_currency->balances[0]) ) {
+				$balance->base_currency->balances()->create(['user_id' => $user_id, 'in_order_balance' => 0, 'total_balance' => 0]);
+				
+				$balance->base_currency->load(['balances' => function($query) use ($user_id) {
+					$query->whereUserId($user_id);
+				}])->find($request->pair_id);
+			}
+
 			$userBalance = $balance->base_currency->balances[0];
 			$availableBalance = $userBalance->total_balance - $userBalance->in_order_balance;
 
@@ -187,18 +234,48 @@ class TradeOrdersController extends Controller
 					// 'trigger_rate' => NULL,
 					'tradable_quantity' => $request->quantity,
 					'type' => $request->type,
-					'status' => 1,
+					// 'status' => 1,
+					'status' => ($request->type === '2' ? 0 : 1),
 				]);
 
+				// For StopLimit order
+				if ($request->type === '2') {
+					$insert = [
+						'trade_order_id' => $order->id,
+						// 'user_id' => $user_id,
+						// 'currency_pair_id' => $request->pair_id,
+						// 'direction' => 0,
+						// 'quantity' => $request->quantity,
+						// 'rate' => $request->price,
+						// 'type' => $request->type,
+						'status' => 1,
+					];
+
+					// Get Market Rate
+					$marketRate = Trade_transaction::latest()->first()->rate ?? 0.01;
+					// $marketRate = $lastTrade ? $lastTrade->rate : 0.01;
+					if ($request->trigger_rate > $marketRate) {
+						// $insert['min_trigger_rate'] = $request->trigger_rate;
+						$insert['upper_trigger_rate'] = $request->trigger_rate;
+					} else {
+						// $insert['max_trigger_rate'] = $request->trigger_rate;
+						$insert['lower_trigger_rate'] = $request->trigger_rate;
+					}
+
+					Trade_order_condition::create($insert);
+				}
+
 				// Update available balance
-				$update = Balance::where([
+				/*$update = Balance::where([
 					'user_id' => $user_id, 
 					'currency_id' => $userBalance->currency_id
 				])
 				// ->increment('in_order_balance', $requiredBalance);
-				->increment('in_order_balance', $request->quantity);
+				->increment('in_order_balance', $request->quantity);*/
+				$userBalance->increment('in_order_balance', $request->quantity);
 
-				if ($order && $update) {
+				// if ($order && $update) {
+				if ($order) {
 					DB::commit();
 
 					// Trigger event to add trade in queue for trade execution
@@ -251,8 +328,18 @@ class TradeOrdersController extends Controller
     		return response()->api('Resource Not Found', 404); // Not Found
     	}
 
+    	// Redirect if user don't have permission to update order
+    	if ($user_id !== $order->user_id) {
+    		return response()->api('Resource Not Found', 404); // Not Found
+    	}
+
 		DB::beginTransaction();
 		try {
+
+			// update status of condition table
+			if ($order->type === 2 && $order->status === 0) {
+				$order->condition()->update(['status' => 3]);
+			}
 			
 			// Update order status as canceled
 			$order->status = 3;
@@ -510,7 +597,7 @@ class TradeOrdersController extends Controller
 		}
 
 		$orders = $orders
-			->with('currency_pair:id,symbol')
+			->with('currency_pair:id,symbol', 'condition:trade_order_id,lower_trigger_rate,upper_trigger_rate')
 			->latest()
 			->get()
 			->makeVisible('created_at');
@@ -518,6 +605,12 @@ class TradeOrdersController extends Controller
 		$orders->map(function($item) {
 			$item['currency_pair_symbol'] = $item->currency_pair->symbol;
 			unset($item->currency_pair);
+
+			if ($item->condition) {
+				$item['lower_trigger_rate'] = $item->condition->lower_trigger_rate;
+				$item['upper_trigger_rate'] = $item->condition->upper_trigger_rate;
+				unset($item->condition);
+			}
 		});
 
 
@@ -544,9 +637,10 @@ class TradeOrdersController extends Controller
     {
     	$orders = Trade_order::where([
     			'user_id' => $user_id,
-    			'status' => 1
+    			// 'status' => 1
     		])
-    		->with('currency_pair:id,symbol')
+    		->whereIn('status', [0, 1])
+    		->with('currency_pair:id,symbol', 'condition:trade_order_id,lower_trigger_rate,upper_trigger_rate')
     		->latest()
     		->get()
     		->makeVisible('created_at');
@@ -554,6 +648,11 @@ class TradeOrdersController extends Controller
     	$orders->map(function($item) {
 			$item['currency_pair_symbol'] = $item->currency_pair->symbol;
 			unset($item->currency_pair);
+			if ($item->condition) {
+				$item['lower_trigger_rate'] = $item->condition->lower_trigger_rate;
+				$item['upper_trigger_rate'] = $item->condition->upper_trigger_rate;
+				unset($item->condition);
+			}
 		});
 
 		/**
@@ -634,6 +733,31 @@ class TradeOrdersController extends Controller
 
     public function tradeEngineTesting(Trade_order $tradeOrder)
     {
+    	$marketRate = 0.0091;
+		$orders = Trade_order::where([
+			'currency_pair_id' => $tradeOrder->currency_pair_id,
+			'type' => 2, // stop_limit
+		])
+		->with('condition')
+		->whereHas('condition', function($query) use ($marketRate) {
+			// $query->where('max_trigger_rate', '>=', $marketRate);
+			$query
+				->where('lower_trigger_rate', '>=', $marketRate)
+				->orWhere('upper_trigger_rate', '<=', $marketRate);
+		})
+		->get();
+
+		foreach ($orders as $order) {
+			$order->status = 1;
+			$order->save();
+			$order->condition->status = 2;
+			$order->condition->save();
+		}
+
+    	echo '<pre>';
+    	print_r($orders->toArray());
+    	echo '</pre>';
+    	die;
     	echo '<pre>';
     	print_r($this->getCounterOrder($tradeOrder)->toArray());
     	echo '</pre>';
@@ -736,45 +860,5 @@ class TradeOrdersController extends Controller
 
     	// return $tradeOrder;
     	return $counterOrder;
-    }
-
-    private function updateTradeOrder($order, $tradable_quantity)
-    {
-    	if ($order->tradable_quantity <= $tradable_quantity) {
-    		$order->tradable_quantity = 0;
-    		$order->status = 3;
-    	} else {
-    		$order->decrement('tradable_quantity', $tradable_quantity);
-    	}
-
-    	$order->save();
-    }
-
-    private function updateBalances($order, $tradable_quantity, $base_currency_id, $quote_currency_id)
-    {
-    	if ($order->direction === 1) { // buy
-    		// 100 + 5 = 105
-    		// Increase buying(base) currency balance
-    		$fee = ($tradable_quantity / $order->quantity) * $order->fee;
-    		Balance::incrementUserBalance($order->user_id, $base_currency_id, ($tradable_quantity - $fee));
-
-    		// Decrease selling(quote) currency balances ("total_balance", "in_order_balance")
-    		$decrement = $tradable_quantity * $order->rate;
-    		// Balance::decrementUserBalance($order->user_id, $quote_currency_id, $decrement);
-    		// Balance::decrementUserInOrderBalance($order->user_id, $quote_currency_id, $decrement);
-    		Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $quote_currency_id, $decrement);
-    	
-    	} elseif ($order->direction === 0) { // sell
-    		
-    		// Increase buying(quote) currency balance
-    		$fee = ($tradable_quantity / $order->quantity) * $order->fee;
-    		Balance::incrementUserBalance($order->user_id, $quote_currency_id, ($tradable_quantity * $order->rate - $fee));
-
-    		// Decrease selling(base) currency balances ("total_balance", "in_order_balance")
-    		// Balance::decrementUserBalance($order->user_id, $base_currency_id, $tradable_quantity);
-    		// Balance::decrementUserInOrderBalance($order->user_id, $base_currency_id, $tradable_quantity);
-    		Balance::decrementUserBalanceAndInOrderBalance($order->user_id, $base_currency_id, $tradable_quantity);
-
-    	}
     }
 }

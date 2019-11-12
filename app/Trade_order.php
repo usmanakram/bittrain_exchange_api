@@ -46,9 +46,9 @@ class Trade_order extends Model
     {
     	return $this->hasMany(Trade_transaction::class, 'sell_order_id');
     }
-    public function all_open_orders(){
-        
-        $data= $this->all()->where('status','=', 1);
-        return compact('data');
+
+    public function condition()
+    {
+        return $this->hasOne(Trade_order_condition::class);
     }
 }

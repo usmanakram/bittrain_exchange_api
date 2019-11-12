@@ -26,7 +26,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $hidden = [
-        'password', 'remember_token',
+        'password', 'remember_token', 'created_at', 'updated_at'
     ];
 
     /**
@@ -61,9 +61,5 @@ class User extends Authenticatable
     public function trade_orders()
     {
         return $this->hasMany(Trade_order::class);
-    }
-    
-    public function open_trade_orders() {
-        return $this->trade_orders()->where('status','=', 1);
     }
 }
