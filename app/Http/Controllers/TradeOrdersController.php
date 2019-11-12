@@ -380,7 +380,7 @@ class TradeOrdersController extends Controller
     	DB::statement("SET sql_mode = '' ");
 
     	$buyOrders = Trade_order::where($where)
-    		->whereIn('type', [0, 1]) // instant/market & limit orders
+    		// ->whereIn('type', [0, 1]) // instant/market & limit orders
     		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity, rate * SUM(tradable_quantity) AS total'))
     		->groupBy('rate')
     		->orderBy('rate', 'desc')
@@ -389,7 +389,7 @@ class TradeOrdersController extends Controller
     	
     	$where['direction'] = 0;
     	$sellOrders = Trade_order::where($where)
-    		->whereIn('type', [0, 1]) // instant/market & limit orders
+    		// ->whereIn('type', [0, 1]) // instant/market & limit orders
     		->select(DB::raw('id, rate, SUM(tradable_quantity) AS tradable_quantity, rate * SUM(tradable_quantity) AS total'))
     		->groupBy('rate')
     		->orderBy('rate', 'asc')
