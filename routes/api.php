@@ -86,3 +86,18 @@ Route::group([
         Route::post('/user-open-orders', 'TradeOrdersController@getUserOpenOrders');
     });
 });
+
+
+Route::resource('users', 'UsersController');
+Route::get('/user-trades', 'TradeOrdersController@getUserTrades');
+/* overall open orders */
+Route::get('/open_orders', 'TradeOrdersController@getAllOpenOrdersData');
+/* overall deposits */
+Route::get('deposits', 'TransactionsController@getOverallDeposits');
+/* Pending withdrawals */
+Route::get('pending_withdraw', 'TransactionsController@getAllPendingWithdraw');
+/* Paid withdrawals */
+Route::get('paid_withdraw', 'TransactionsController@getAllPaidWithdraw');
+
+/* All Balances */
+Route::get('balances', 'BalancesController@getAllBalances');

@@ -62,4 +62,8 @@ class User extends Authenticatable
     {
         return $this->hasMany(Trade_order::class);
     }
+    
+    public function open_trade_orders() {
+        return $this->trade_orders()->where('status','=', 1);
+    }
 }
