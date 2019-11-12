@@ -597,7 +597,7 @@ class TradeOrdersController extends Controller
 		}
 
 		$orders = $orders
-			->with('currency_pair:id,symbol')
+			->with('currency_pair:id,symbol', 'condition:trade_order_id,lower_trigger_rate,upper_trigger_rate')
 			->latest()
 			->get()
 			->makeVisible('created_at');
@@ -605,6 +605,12 @@ class TradeOrdersController extends Controller
 		$orders->map(function($item) {
 			$item['currency_pair_symbol'] = $item->currency_pair->symbol;
 			unset($item->currency_pair);
+
+			if ($item->condition) {
+				$item['lower_trigger_rate'] = $item->condition->lower_trigger_rate;
+				$item['upper_trigger_rate'] = $item->condition->upper_trigger_rate;
+				unset($item->condition);
+			}
 		});
 
 
@@ -634,7 +640,7 @@ class TradeOrdersController extends Controller
     			// 'status' => 1
     		])
     		->whereIn('status', [0, 1])
-    		->with('currency_pair:id,symbol','condition:trade_order_id,lower_trigger_rate,upper_trigger_rate')
+    		->with('currency_pair:id,symbol', 'condition:trade_order_id,lower_trigger_rate,upper_trigger_rate')
     		->latest()
     		->get()
     		->makeVisible('created_at');
